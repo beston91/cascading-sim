@@ -123,7 +123,7 @@ In this example, we run a cascading failure simulation on a Barabasi Albert (BA)
 
        'l': 0.8,
        'r': 0.2,
-       'c': int(0.1 * len(graph)),
+       'c_approx': int(0.1 * len(graph)),
 
        'k_a': 30,
        'attack': 'rb_node',
@@ -194,7 +194,7 @@ In this example, we run a computer virus simulation (SIS infection model) on a B
        'model': 'SIS',
        'b': 0.001,
        'd': 0.01,
-       'c': 1,
+       'c_approx': 1,
 
        'runs': 1,
        'steps': 5000,

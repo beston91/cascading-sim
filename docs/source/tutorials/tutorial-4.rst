@@ -36,7 +36,7 @@ To run a cascading failure simulations and create the visual, we just have to wr
 
       'l': 0.8,
       'r': 0.2,
-      'c': int(0.1 * len(graph)),
+      'c_approx': int(0.1 * len(graph)),
 
       'k_a': 30,
       'attack': 'rb_node',
@@ -82,7 +82,7 @@ Running and visualizing multiple simulations only takes a few extra lines of cod
 
         'l': 0.8,
         'r': 0.2,
-        'c': int(0.1 * len(graph)),
+        'c_approx': int(0.1 * len(graph)),
 
         'k_a': 5,
         'attack': 'id_node',

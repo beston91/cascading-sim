@@ -480,7 +480,7 @@ class Defense(Simulation):
 
     def __init__(self, graph, runs=10, steps=50, attack='id_node', defense=None, k_d=0, **kwargs):
         super().__init__(graph, runs, steps, **kwargs)
-        self.graph = graph
+        self.S2VGraph.graph = graph
 
         self.prm.update({
             'attack': attack,
@@ -511,17 +511,17 @@ class Defense(Simulation):
         Resets the simulation between each run
         """
 
-        self.graph_ = self.graph.copy()
+        self.S2VGraph.graph_ = self.S2VGraph.graph.copy()
         self.attacked = []
         self.protected = []
         self.connectivity = []
 
         # attacked nodes or edges
         if self.prm['attack'] is not None and self.prm['k_a'] > 0:
-            self.attacked = run_attack_method(self.graph_, self.prm['attack'], self.prm['k_a'], approx=self.prm['attack_approx'], seed=self.prm['seed'])
+            self.attacked = run_attack_method(self.S2VGraph.graph_, self.prm['attack'], self.prm['k_a'], approx=self.prm['attack_approx'], seed=self.prm['seed'])
 
             if get_attack_category(self.prm['attack']) == 'edge':
-                self.graph_.remove_nodes_from(self.attacked)
+                self.S2VGraph.graph_.remove_nodes_from(self.attacked)
 
         elif self.prm['attack'] is not None:
             print(self.prm['attack'], "not available or k <= 0")
@@ -530,10 +530,10 @@ class Defense(Simulation):
         if self.prm['defense'] is not None and self.prm['steps'] > 0:
 
             if get_defense_category(self.prm['defense']) == 'node':
-                self.protected = run_defense_method(self.graph_, self.prm['defense'], self.prm['steps'], seed=self.prm['seed'])
+                self.protected = run_defense_method(self.S2VGraph.graph_, self.prm['defense'], self.prm['steps'], seed=self.prm['seed'])
 
             elif get_defense_category(self.prm['defense']) == 'edge':
-                self.protected = run_defense_method(self.graph_, self.prm['defense'], self.prm['steps'], seed=self.prm['seed'])
+                self.protected = run_defense_method(self.S2VGraph.graph_, self.prm['defense'], self.prm['steps'], seed=self.prm['seed'])
 
         elif self.prm['defense'] is not None:
             print(self.prm['defense'], "not available or k <= 0")
@@ -542,9 +542,9 @@ class Defense(Simulation):
         if get_attack_category(self.prm['attack']) == 'node':
             if get_defense_category(self.prm['defense']) == 'node':
                 diff = set(self.protected) - set(self.attacked)
-                self.graph_.remove_nodes_from(diff)
+                self.S2VGraph.graph_.remove_nodes_from(diff)
             else:
-                self.graph_.remove_nodes_from(self.attacked)
+                self.S2VGraph.graph_.remove_nodes_from(self.attacked)
 
     def track_simulation(self, step):
         """
@@ -553,15 +553,15 @@ class Defense(Simulation):
          :param step: current simulation iteration
          """
 
-        measure = run_measure(self.graph_, self.prm['robust_measure'])
+        measure = run_measure(self.S2VGraph.graph_, self.prm['robust_measure'])
 
-        ccs = list(nx.connected_components(self.graph_))
+        ccs = list(nx.connected_components(self.S2VGraph.graph_))
         ccs.sort(key=len, reverse=True)
 
         m = interp1d([0, len(ccs)], [0.15, 1])
 
         status = {}
-        for n in self.graph:
+        for n in self.S2VGraph.graph:
             for idx, cc in enumerate(ccs):
                 if n in self.attacked[0:step]:
                     status[n] = 1
@@ -574,7 +574,7 @@ class Defense(Simulation):
 
         self.sim_info[step] = {
             'status':  list(status.values()),
-            'failed': len(self.graph_) - len(max(ccs)),
+            'failed': len(self.S2VGraph.graph_) - len(max(ccs)),
             'measure': measure,
             'protected': self.protected,
             'edges_added': self.protected['added'][0:step] if 'added' in self.protected else [],
@@ -591,11 +591,11 @@ class Defense(Simulation):
                 self.track_simulation(step)
 
                 u, v = self.protected['added'][step]
-                self.graph_.add_edge(u, v)
+                self.S2VGraph.graph_.add_edge(u, v)
 
                 if 'removed' in self.protected[step]:
                     u, v = self.protected['removed'][step]
-                    self.graph.remove_edge(u, v)
+                    self.S2VGraph.graph.remove_edge(u, v)
 
             else:
                 self.track_simulation(step)

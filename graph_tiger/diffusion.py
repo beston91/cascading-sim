@@ -19,18 +19,18 @@ class Diffusion(Simulation):
     :param steps: an integer number of steps to run a single simulation
     :param b: float representing birth rate of virus (probability of transmitting disease to each neighbor)
     :param d: float representing death rate of virus (probability of each infected node healing)
-    :param c: fraction of initially infected nodes
+    :param c_approx: fraction of initially infected nodes
     :param **kwargs: see parent class Simulation for additional options
     """
 
-    def __init__(self, graph, model='SIS', runs=10, steps=5000, b=0.00208, d=0.01, c=1, **kwargs):
+    def __init__(self, graph, model='SIS', runs=10, steps=5000, b=0.00208, d=0.01, c_approx=1, **kwargs):
         super().__init__(graph, runs, steps, **kwargs)
 
         self.prm.update({
             'model': model,
             'b': b,
             'd': d,
-            'c': c,
+            'c_approx': c_approx,
 
             'diffusion': None,
             'method': None,
@@ -45,7 +45,8 @@ class Diffusion(Simulation):
         if self.prm['plot_transition'] or self.prm['gif_animation']:
             self.node_pos, self.edge_pos = self.get_graph_coordinates()
 
-        self.save_dir = os.path.join(os.getcwd(), 'plots', self.get_plot_title(steps))
+        self.save_dir = os.path.join(
+            os.getcwd(), 'plots', self.get_plot_title(steps))
         os.makedirs(self.save_dir, exist_ok=True)
 
         self.reset_simulation()
@@ -58,29 +59,32 @@ class Diffusion(Simulation):
         :return: a float for virus effective strength
         """
 
-        return round(spectral_radius(self.graph) * self.prm['b'] / self.prm['d'], 2)
+        return round(spectral_radius(self.S2VGraph.graph) * self.prm['b'] / self.prm['d'], 2)
 
     def reset_simulation(self):
         """
         Resets the simulation between each run
         """
 
-        self.graph = self.graph_og.copy()
+        self.S2VGraph.graph = self.S2VGraph.graph_og.copy()
         self.vaccinated = set()
         self.sim_info = defaultdict()
 
-        self.infected = set(np.random.choice(list(self.graph.nodes), size=int(self.prm['c'] * len(self.graph)), replace=False).tolist())
+        self.infected = set(np.random.choice(list(self.S2VGraph.graph.nodes), size=int(
+            self.prm['c_approx'] * len(self.S2VGraph.graph)), replace=False).tolist())
 
         # decrease network diffusion
         if self.prm['diffusion'] == 'min' and self.prm['k'] > 0:
 
             if get_attack_category(self.prm['method']) == 'node':
-                self.vaccinated = set(run_attack_method(self.graph, self.prm['method'], self.prm['k'], seed=self.prm['seed']))
+                self.vaccinated = set(run_attack_method(
+                    self.S2VGraph.graph, self.prm['method'], self.prm['k'], seed=self.prm['seed']))
                 self.infected = self.infected.difference(self.vaccinated)
 
             elif get_attack_category(self.prm['method']) == 'edge':
-                edge_info = run_attack_method(self.graph, self.prm['method'], self.prm['k'], seed=self.prm['seed'])
-                self.graph.remove_edges_from(edge_info)
+                edge_info = run_attack_method(
+                    self.S2VGraph.graph, self.prm['method'], self.prm['k'], seed=self.prm['seed'])
+                self.S2VGraph.graph.remove_edges_from(edge_info)
             else:
                 print(self.prm['method'], 'not available')
 
@@ -88,10 +92,11 @@ class Diffusion(Simulation):
         elif self.prm['diffusion'] == 'max' and self.prm['k'] > 0:
 
             if get_defense_category(self.prm['method']) == 'edge':
-                edge_info = run_defense_method(self.graph, self.prm['method'], self.prm['k'], seed=self.prm['seed'])
+                edge_info = run_defense_method(
+                    self.S2VGraph.graph, self.prm['method'], self.prm['k'], seed=self.prm['seed'])
 
-                self.graph.add_edges_from(edge_info['added'])
-                self.graph.remove_edges_from(edge_info['removed'])
+                self.S2VGraph.graph.add_edges_from(edge_info['added'])
+                self.S2VGraph.graph.remove_edges_from(edge_info['removed'])
             else:
                 print(self.prm['method'], 'not available')
 
@@ -106,7 +111,7 @@ class Diffusion(Simulation):
           """
 
         self.sim_info[step] = {
-            'status': [1 if n in self.infected else 0 for n in self.graph.nodes],
+            'status': [1 if n in self.infected else 0 for n in self.S2VGraph.graph.nodes],
             'failed': len(self.infected),
             'recovered': len(self.vaccinated),
             'protected': self.vaccinated
@@ -125,13 +130,16 @@ class Diffusion(Simulation):
 
             infected_new = set()
             for node in self.infected:
-                nbrs = self.graph.neighbors(node)
-                nbrs = set(nbrs).difference(self.infected).difference(self.vaccinated)
+                nbrs = self.S2VGraph.graph.neighbors(node)
+                nbrs = set(nbrs).difference(
+                    self.infected).difference(self.vaccinated)
 
-                nbrs_infected = set([n for n in nbrs if random.random() <= self.prm['b']])
+                nbrs_infected = set(
+                    [n for n in nbrs if random.random() <= self.prm['b']])
                 infected_new = infected_new.union(nbrs_infected)
 
-            cured = set([n for n in self.infected if random.random() <= self.prm['d']])
+            cured = set(
+                [n for n in self.infected if random.random() <= self.prm['d']])
 
             self.infected = self.infected.union(infected_new)  # infect
             self.infected = self.infected.difference(cured)  # cure
@@ -154,7 +162,7 @@ def main():
         'model': 'SIS',
         'b': 0.001,  # karate=0.00208
         'd': 0.01,
-        'c': 1,
+        'c_approx': 1,
 
         'runs': 1,
         'steps': 5000,
@@ -180,7 +188,7 @@ def main():
     #     'model': 'SIR',
     #     'b': 0.00208,
     #     'd': 0.01,
-    #     'c': 0.1,
+    #     'c_approx': 0.1,
     #     'runs': 10,
     #     'steps': 5000,
     #

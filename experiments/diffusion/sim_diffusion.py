@@ -1,3 +1,5 @@
+from graph_tiger.diffusion import Diffusion
+from graph_tiger.graphs import as_733
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,15 +8,12 @@ from collections import defaultdict
 import sys
 sys.path.insert(0, os.getcwd() + '/../../')
 
-from graph_tiger.graphs import as_733
-from graph_tiger.diffusion import Diffusion
-
 
 def plot_results(graph, params, results):
     plt.figure(figsize=(6.4, 4.8))
 
     title = '{}_epidemic:diffusion={},method={},k={}'.format(params['model'], params['diffusion'],
-                                                                          params['method'], params['k'])
+                                                             params['method'], params['k'])
 
     for strength, result in results.items():
         result_norm = [r / len(graph) for r in result]
@@ -67,7 +66,7 @@ def main():
         'model': 'SIS',
         'b': 0.00208,
         'd': 0.01,
-        'c': 1,
+        'c_approx': 1,
         'runs': 1,
         'steps': 5000,
 
@@ -92,7 +91,7 @@ def main():
         'model': 'SIS',
         'b': 0.00208,
         'd': 0.01,
-        'c': 1,
+        'c_approx': 1,
         'runs': 10,
         'steps': 5000,
 
@@ -117,7 +116,7 @@ def main():
         'model': 'SIS',
         'b': 0.00208,
         'd': 0.01,
-        'c': 1,
+        'c_approx': 1,
         'runs': 10,
         'steps': 5000,
 

@@ -1,3 +1,5 @@
+from graph_tiger.cascading import Cascading
+from graph_tiger.graphs import electrical
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,9 +7,6 @@ from collections import defaultdict
 
 import sys
 sys.path.insert(0, os.getcwd() + '/../../')
-
-from graph_tiger.graphs import electrical
-from graph_tiger.cascading import Cascading
 
 
 def plot_results(graph, params, results, xlabel='Steps', line_label='', experiment=''):
@@ -31,7 +30,7 @@ def plot_results(graph, params, results, xlabel='Steps', line_label='', experime
     plt.legend()
     plt.title(title)
     plt.savefig(save_dir + title + '.pdf')
-    plt.show()
+    plt.show(block=False)
 
     plt.clf()
 
@@ -44,7 +43,7 @@ def experiment_redundancy(graph):
 
         'l': 0.8,
         'r': 0.2,
-        'c': int(0.1 * len(graph)),
+        'c_approx': int(0.1 * len(graph)),
 
         'k_a': 5,
         'attack': 'id_node',
@@ -82,7 +81,8 @@ def experiment_redundancy(graph):
         cf = Cascading(graph, **params)
         results[r] = cf.run_simulation()
 
-    plot_results(graph, params, results, xlabel='Steps', line_label='Redundancy', experiment='redundancy')
+    plot_results(graph, params, results, xlabel='Steps',
+                 line_label='Redundancy', experiment='redundancy')
 
 
 def experiment_attack(graph):
@@ -93,7 +93,7 @@ def experiment_attack(graph):
 
         'l': 0.8,
         'r': 0.4,
-        'c': int(0.1 * len(graph)),
+        'c_approx': int(0.1 * len(graph)),
 
         'k_a': 5,
         'attack': 'rnd_node',
@@ -131,7 +131,8 @@ def experiment_attack(graph):
         cf = Cascading(graph, **params)
         results[k_a] = cf.run_simulation()
 
-    plot_results(graph, params, results, xlabel='Steps', line_label='k_a', experiment='rnd_node_attack')
+    plot_results(graph, params, results, xlabel='Steps',
+                 line_label='k_a', experiment='rnd_node_attack')
 
     # targeted attack
     params['attack'] = 'id_node'
@@ -150,7 +151,8 @@ def experiment_attack(graph):
         cf = Cascading(graph, **params)
         results[k_a] = cf.run_simulation()
 
-    plot_results(graph, params, results, xlabel='Steps', line_label='k_a', experiment='id_node_attack')
+    plot_results(graph, params, results, xlabel='Steps',
+                 line_label='k_a', experiment='id_node_attack')
 
 
 def experiment_defense(graph):
@@ -161,7 +163,7 @@ def experiment_defense(graph):
 
         'l': 0.8,
         'r': 0.2,
-        'c': int(0.1 * len(graph)),
+        'c_approx': int(0.1 * len(graph)),
 
         'k_a': 5,
         'attack': 'id_node',
@@ -198,7 +200,8 @@ def experiment_defense(graph):
         cf = Cascading(graph, **params)
         results[k_d] = cf.run_simulation()
 
-    plot_results(graph, params, results, xlabel='Steps', line_label='k_d', experiment='add_edge_pref')
+    plot_results(graph, params, results, xlabel='Steps',
+                 line_label='k_d', experiment='add_edge_pref')
 
     # node defense
     params['defense'] = 'pr_node'
@@ -219,7 +222,8 @@ def experiment_defense(graph):
         cf = Cascading(graph, **params)
         results[k_d] = cf.run_simulation()
 
-    plot_results(graph, params, results, xlabel='Steps', line_label='k_d', experiment='add_node_pr')
+    plot_results(graph, params, results, xlabel='Steps',
+                 line_label='k_d', experiment='add_node_pr')
 
 
 def main():

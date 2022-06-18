@@ -28,7 +28,7 @@ Now that we have a little background, lets dive into the code required to set up
       'model': 'SIS',
       'b': 0.00208,
       'd': 0.01,
-      'c': 1,
+      'c_approx': 1,
 
       'runs': 1,
       'steps': 5000,
@@ -78,7 +78,7 @@ Running multiple simulations for comparison only takes a few lines of code:
         'model': 'SIS',
         'b': 0.00208,
         'd': 0.01,
-        'c': 1,
+        'c_approx': 1,
         'runs': 1,
         'steps': 5000,
 
@@ -105,7 +105,7 @@ Running multiple simulations for comparison only takes a few lines of code:
         'model': 'SIS',
         'b': 0.00208,
         'd': 0.01,
-        'c': 1,
+        'c_approx': 1,
         'runs': 10,
         'steps': 5000,
 

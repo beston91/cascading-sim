@@ -5,6 +5,8 @@ __pycache__/
 
 # Pycharm config information
 .idea
+.DS_Store
+.vscode/
 
 # Distribution / packaging
 .Python

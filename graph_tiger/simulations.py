@@ -1,3 +1,4 @@
+import bisect
 import os
 import random
 import numpy as np
@@ -6,11 +7,13 @@ import networkx as nx
 from fa2 import ForceAtlas2
 import matplotlib.pyplot as plt
 from collections import defaultdict
+from tqdm import tqdm
 from scipy.interpolate import interp1d
 from datashader.bundling import hammer_bundle
 from matplotlib.animation import FuncAnimation
 from matplotlib.collections import LineCollection
 from matplotlib.colors import LinearSegmentedColormap
+from graph_tiger.graph_state import S2VGraph
 
 from graph_tiger.utils import get_sparse_graph, curved_edges
 
@@ -25,10 +28,11 @@ class Simulation:
     :param steps: number of time steps to run each simulation
     :param kwargs: optional parameters to change visualization settings
     """
+
     def __init__(self, graph, runs, steps, **kwargs):
         # TODO: efficiency improvement--store edge and node difference rather than whole graph twice
         self.graph_og = graph.copy()
-        self.graph = graph
+        self.S2VGraph = S2VGraph(graph)
 
         self.prm = {
             'runs': runs,
@@ -47,7 +51,7 @@ class Simulation:
         }
 
         self.sim_info = defaultdict()
-        self.sparse_graph = get_sparse_graph(self.graph)
+        self.sparse_graph = get_sparse_graph(self.S2VGraph.graph)
 
         if self.prm['seed'] is not None:
             random.seed(self.prm['seed'])
@@ -73,21 +77,27 @@ class Simulation:
         """
         edge_pos = None
 
-        node_pos = {idx: v['pos'] for idx, (k, v) in enumerate(dict(self.graph.nodes).items()) if 'pos' in v}   # check graph for coords
-        node_pos = node_pos if len(node_pos) == len(self.graph) else None
+        node_pos = {idx: v['pos'] for idx, (k, v) in enumerate(dict(
+            self.S2VGraph.graph.nodes).items()) if 'pos' in v}   # check graph for coords
+        node_pos = node_pos if len(node_pos) == len(
+            self.S2VGraph.graph) else None
 
         # node positions
         if self.prm['node_style'] == 'force_atlas' and node_pos is None:
-            force = ForceAtlas2(outboundAttractionDistribution=True, edgeWeightInfluence=0, scalingRatio=6.0, verbose=False)
-            node_pos = force.forceatlas2_networkx_layout(self.graph, pos=None, iterations=self.prm['fa_iter'])
+            force = ForceAtlas2(outboundAttractionDistribution=True,
+                                edgeWeightInfluence=0, scalingRatio=6.0, verbose=False)
+            node_pos = force.forceatlas2_networkx_layout(
+                self.S2VGraph.graph, pos=None, iterations=self.prm['fa_iter'])
 
         elif node_pos is None:
-            node_pos = nx.spectral_layout(self.graph)
+            node_pos = nx.spectral_layout(self.S2VGraph.graph)
 
         # edge positions
         if self.prm['edge_style'] == 'bundled':
-            pos = pd.DataFrame.from_dict(node_pos, orient='index', columns=['x', 'y']).rename_axis('name').reset_index()
-            edge_pos = hammer_bundle(pos, nx.to_pandas_edgelist(self.graph))
+            pos = pd.DataFrame.from_dict(node_pos, orient='index', columns=[
+                                         'x', 'y']).rename_axis('name').reset_index()
+            edge_pos = hammer_bundle(
+                pos, nx.to_pandas_edgelist(self.S2VGraph.graph))
 
         return node_pos, edge_pos
 
@@ -97,12 +107,13 @@ class Simulation:
 
         :param results: a list of floats representing each simulation output
         """
-        results_norm = [r / len(self.graph) for r in results]
+        results_norm = [r / len(self.S2VGraph.graph) for r in results]
 
-        plt.figure(figsize=(6.4, 4.8))
+        plt.figure(figsize=(6.4, 4.8), dpi=80)
 
         if self.child_class() == 'Diffusion':
-            plt.plot(results_norm, label="Effective strength: {}".format(self.get_effective_strength()))
+            plt.plot(results_norm, label="Effective strength: {}".format(
+                self.get_effective_strength()))
 
             if self.prm['model'] == 'SIS':
                 plt.ylabel('Infected Nodes')
@@ -120,7 +131,8 @@ class Simulation:
 
         plt.xlabel('Steps')
         plt.title(self.child_class())
-        plt.savefig(os.path.join(self.save_dir, self.get_plot_title(self.prm['steps']) + '_results.pdf'))
+        plt.savefig(os.path.join(self.save_dir, self.get_plot_title(
+            self.prm['steps']) + '_results.pdf'))
         plt.show()
 
         plt.clf()
@@ -133,16 +145,19 @@ class Simulation:
         :return: title string
         """
         if self.child_class() == 'Diffusion':
-            title = '{}_epidemic:step={},diffusion={},method={},k={}'.format(self.prm['model'], step, self.prm['diffusion'], self.prm['method'], self.prm['k'])
+            title = '{}_epidemic:step={},diffusion={},method={},k={}'.format(
+                self.prm['model'], step, self.prm['diffusion'], self.prm['method'], self.prm['k'])
 
         elif self.child_class() == 'Cascading':
             title = 'Cascading:step={},l={},r={},k_a={},attack={},k_d={},defense={}'.format(step, self.prm['l'], self.prm['r'], self.prm['k_a'],
                                                                                             self.prm['attack'], self.prm['k_d'], self.prm['defense'])
         elif self.child_class() == 'Attack':
-            title = 'Attack:step={},attack={},k_d={},defense={}'.format(step, self.prm['attack'], self.prm['k_d'], self.prm['defense'])
+            title = 'Attack:step={},attack={},k_d={},defense={}'.format(
+                step, self.prm['attack'], self.prm['k_d'], self.prm['defense'])
 
         elif self.child_class() == 'Defense':
-            title = 'Defense:step={},attack={},k_a={},defense={}'.format(step, self.prm['attack'], self.prm['k_a'], self.prm['defense'])
+            title = 'Defense:step={},attack={},k_a={},defense={}'.format(
+                step, self.prm['attack'], self.prm['k_a'], self.prm['defense'])
 
         else:
             title = ''
@@ -157,12 +172,14 @@ class Simulation:
         """
         history = [info['failed'] for step, info in sim_info.items()]
 
-        start = history[0]
-        end = history[-1]
+        start = 0
+        end = bisect.bisect_left(history, history[-1])
         middle = start - int((start - end) / 2)
-        mid_step, _ = min(enumerate(history), key=lambda x: abs(x[1] - middle))
 
-        steps_to_plot = [0, 1, 2, mid_step, self.prm['steps'] - 1]
+        # steps_to_plot = [0, 1, 2, middle-1, middle, middle+1, middle+2, self.prm['steps'] -
+        #                  1] if middle > 2 else [0, 1, 2, self.prm['steps'] - 1]
+        steps_to_plot = np.arange(start, end)
+        print(f"\nPlotting steps: {steps_to_plot}")
 
         for step in steps_to_plot:
             self.plot_network(step=step)
@@ -206,13 +223,15 @@ class Simulation:
                 else:
                     nc.append(s)
                     ns.append(20)
-            cmap = LinearSegmentedColormap.from_list('mycmap', ['#67CAFF', '#17255A', '#FF5964'])
+            cmap = LinearSegmentedColormap.from_list(
+                'mycmap', ['#67CAFF', '#17255A', '#FF5964'])
 
         elif self.child_class() == 'Attack' or self.child_class() == 'Defense':
             ew = 5
             ec = 'gray'
             nc = self.sim_info[step]['status']
-            ns = [120 if status == 1 else 40 for status in self.sim_info[step]['status']]
+            ns = [120 if status ==
+                  1 else 40 for status in self.sim_info[step]['status']]
             cmap = plt.get_cmap('gist_rainbow_r')
 
         nc = np.array(nc)
@@ -230,15 +249,19 @@ class Simulation:
         nc, ns, ec, ew, cmap = self.get_visual_settings(step)
 
         if self.prm['edge_style'] == 'curved':
-            plt.gca().add_collection(LineCollection(curved_edges(self.graph, self.node_pos), linewidth=ew, color=ec))
+            plt.gca().add_collection(LineCollection(curved_edges(
+                self.S2VGraph.graph, self.node_pos), linewidth=ew, color=ec))
 
         elif self.prm['edge_style'] == 'bundled':
-            plt.plot(self.edge_pos.x, self.edge_pos.y, zorder=1, linewidth=ew, color=ec)
+            plt.plot(self.edge_pos.x, self.edge_pos.y,
+                     zorder=1, linewidth=ew, color=ec)
 
         else:
-            nx.draw_networkx_edges(self.graph, pos=self.node_pos, width=ew, edge_color=ec)
+            nx.draw_networkx_edges(self.S2VGraph.graph,
+                                   pos=self.node_pos, width=ew, edge_color=ec)
 
-        nodes = nx.draw_networkx_nodes(self.graph, pos=self.node_pos, cmap=cmap, vmin=0, vmax=self.prm['max_val'], node_size=ns, node_color=nc)
+        nodes = nx.draw_networkx_nodes(
+            self.S2VGraph.graph, pos=self.node_pos, cmap=cmap, vmin=0, vmax=1, node_size=ns, node_color=nc)
 
         return nodes
 
@@ -248,16 +271,18 @@ class Simulation:
 
         :param step: current iteration of the simulation
         """
-        plt.figure(figsize=(20, 20))
+        plt.figure(figsize=(10, 10), dpi=80)
 
         self.draw_graph(step)
 
         plt.axis('image')
         title = self.get_plot_title(step)
         plt.savefig(os.path.join(self.save_dir, title + '.pdf'))
-        plt.show()
+        plt.title(title)
+        plt.show(block=False)
+        plt.pause(0.1)
 
-        plt.clf()
+        # plt.clf()
 
     def create_simulation_gif(self):
         """
@@ -293,7 +318,8 @@ class Simulation:
             interval = 20
             fps = 1
 
-        anim = FuncAnimation(fig, update, frames=frames, interval=interval, blit=not self.prm['gif_snaps'], repeat=False)
+        anim = FuncAnimation(fig, update, frames=frames, interval=interval,
+                             blit=not self.prm['gif_snaps'], repeat=False)
 
         title = self.get_plot_title(self.prm['steps'])
         gif_path = os.path.join(self.save_dir, title + '.mp4')
@@ -310,7 +336,7 @@ class Simulation:
         print('Running simulation {} times'.format(self.prm['runs']))
 
         sim_results = list(range(self.prm['runs']))
-        for r in range(self.prm['runs']):
+        for r in tqdm(range(self.prm['runs']), colour="green"):
             sim_results[r] = self.run_single_sim()
 
             if self.prm['plot_transition'] and r == 0:
@@ -323,7 +349,8 @@ class Simulation:
 
         avg_results = []
         for t in range(self.prm['steps']):
-            avg_results.append(np.mean([sim_results[r][t] for r in range(self.prm['runs'])]))
+            avg_results.append(np.mean([sim_results[r][t]
+                               for r in range(self.prm['runs'])]))
 
         return avg_results
 

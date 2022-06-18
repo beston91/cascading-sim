@@ -102,7 +102,7 @@ If you find *TIGER* useful in your research, please consider citing the followin
 
         'l': 0.8,
         'r': 0.2,
-        'c': int(0.1 * len(graph)),
+        'c_approx': int(0.1 * len(graph)),
     
         'k_a': 30,
         'attack': 'rb_node',
@@ -127,9 +127,9 @@ If you find *TIGER* useful in your research, please consider citing the followin
     
     cascading.plot_results(results)
     
-Step 0: Network pre-attack | Step 6: Beginning of cascading failure | Step 99: Collapse of network
-:-------------------------:|:-------------------------:|:-------------------------:
-![](images/Cascading:step=0,l=0.8,r=0.2,k_a=30,attack=rb_node,k_d=0,defense=None.jpg)  |  ![](images/Cascading:step=6,l=0.8,r=0.2,k_a=30,attack=rb_node,k_d=0,defense=None.jpg)  |  ![](images/Cascading:step=99,l=0.8,r=0.2,k_a=30,attack=rb_node,k_d=0,defense=None.jpg)
+|                              Step 0: Network pre-attack                               |                        Step 6: Beginning of cascading failure                         |                              Step 99: Collapse of network                              |
+| :-----------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
+| ![](images/Cascading:step=0,l=0.8,r=0.2,k_a=30,attack=rb_node,k_d=0,defense=None.jpg) | ![](images/Cascading:step=6,l=0.8,r=0.2,k_a=30,attack=rb_node,k_d=0,defense=None.jpg) | ![](images/Cascading:step=99,l=0.8,r=0.2,k_a=30,attack=rb_node,k_d=0,defense=None.jpg) |
     
     
 [comment]: ![](images/Cascading:step=100,l=0.8,r=0.2,k_a=30,attack=rb_node,k_d=0,defense=None_results.jpg)
@@ -145,7 +145,7 @@ Step 0: Network pre-attack | Step 6: Beginning of cascading failure | Step 99: C
         'model': 'SIS',
         'b': 0.001,
         'd': 0.01,
-        'c': 1,
+        'c_approx': 1,
     
         'runs': 1,
         'steps': 5000,
@@ -169,9 +169,9 @@ Step 0: Network pre-attack | Step 6: Beginning of cascading failure | Step 99: C
     diffusion.plot_results(results)
     
     
-Step 0: Virus infected network |Step 80: Partially infected network | Step 4999: Virus contained
-:-------------------------:|:-------------------------:|:-------------------------:
-![](images/SIS_epidemic:step=0,diffusion=min,method=ns_node,k=5.jpg)  |![](images/SIS_epidemic:step=80,diffusion=min,method=ns_node,k=5.jpg)  |  ![](images/SIS_epidemic:step=4999,diffusion=min,method=ns_node,k=5.jpg)
+|                    Step 0: Virus infected network                    |                  Step 80: Partially infected network                  |                       Step 4999: Virus contained                        |
+| :------------------------------------------------------------------: | :-------------------------------------------------------------------: | :---------------------------------------------------------------------: |
+| ![](images/SIS_epidemic:step=0,diffusion=min,method=ns_node,k=5.jpg) | ![](images/SIS_epidemic:step=80,diffusion=min,method=ns_node,k=5.jpg) | ![](images/SIS_epidemic:step=4999,diffusion=min,method=ns_node,k=5.jpg) |
 
 [comment]: ![](images/SIS_epidemic:step=5000,diffusion=min,method=ns_node,k=5_results.jpg)
 

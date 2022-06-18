@@ -10,7 +10,7 @@ def test_sis_model():
         'model': 'SIS',
         'b': 0.00208,
         'd': 0.01,
-        'c': 1,
+        'c_approx': 1,
         'runs': 10,
         'steps': 5000,
 
@@ -42,7 +42,8 @@ def test_sis_model():
     ds = Diffusion(graph, **params)
     decreased_diffusion = ds.run_simulation()
 
-    assert (sum(decreased_diffusion) < sum(baseline_diffusion) < sum(increased_diffusion))
+    assert (sum(decreased_diffusion) < sum(
+        baseline_diffusion) < sum(increased_diffusion))
 
 
 def test_sir_model():
@@ -50,7 +51,7 @@ def test_sir_model():
         'model': 'SIR',
         'b': 0.00208,
         'd': 0.01,
-        'c': 0.1,
+        'c_approx': 0.1,
         'runs': 10,
         'steps': 5000,
 
@@ -82,7 +83,8 @@ def test_sir_model():
     ds = Diffusion(graph, **params)
     decreased_diffusion = ds.run_simulation()
 
-    assert sum(decreased_diffusion) < sum(baseline_diffusion) < sum(increased_diffusion)
+    assert sum(decreased_diffusion) < sum(
+        baseline_diffusion) < sum(increased_diffusion)
 
 
 def test_cascading():

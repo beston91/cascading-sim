@@ -1,3 +1,4 @@
+from locale import normalize
 import numpy as np
 import itertools as it
 from tqdm import tqdm
@@ -59,7 +60,9 @@ class Cascading(Simulation):
         else:
             self.capacity_og = nx.betweenness_centrality(
                 self.S2VGraph.graph, k=int(self.prm['c_approx'] * len(self.S2VGraph.graph)), normalized=True, endpoints=True)
-        tmp = sum(self.capacity_og.values())
+        normalizing_const = sum(self.capacity_og.values())
+        self.capacity_og.update((x, y/normalizing_const)
+                                for x, y in self.capacity_og.items())
         self.max_val = max(self.capacity_og.values()) * (1.0 + self.prm['r'])
 
         self.protected = set()
@@ -142,15 +145,21 @@ class Cascading(Simulation):
                 self.S2VGraph.graph, filter_node=lambda node: node not in self.failed)
 
             if self.prm['centrality_method'] == 'load':
-                self.load.update(nx.load_centrality(
-                    view,  normalized=True))
+                new_load = nx.load_centrality(
+                    view,  normalized=True)
             else:
-                self.load.update(nx.betweenness_centrality(
-                    view, k=int(self.prm['c_approx'] * len(view)), normalized=True, endpoints=True))
-            tmp = sum(self.load.values())
-            for n in view.nodes:
-                if self.load[n] > self.capacity[n]:
-                    failed_new.add(n)
+                new_load = nx.betweenness_centrality(
+                    view, k=int(self.prm['c_approx'] * len(view)), normalized=True, endpoints=True)
+
+            normalizing_const = sum(new_load.values())
+            if normalizing_const != 0:
+                new_load.update((x, y/normalizing_const)
+                                for x, y in new_load.items())
+            self.load.update(new_load)
+
+        for n in view.nodes:
+            if self.load[n] > self.capacity[n]:
+                failed_new.add(n)
         else:
             for n in self.failed:
                 if self.load[n] > self.capacity[n]:

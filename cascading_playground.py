@@ -13,6 +13,9 @@ graph = graph_loader('BA', n=500, seed=1)
 def run(cfg: DictConfig):
     print(OmegaConf.to_yaml(cfg))
     params = cfg.playground
+    if 'attack_approx' in params:
+        params.update({
+            'attack_approx': int(params['attack_approx'] * len(graph))})
     cascading = Cascading(graph, **params)
     results = cascading.run_simulation()
     cascading.plot_results(results)

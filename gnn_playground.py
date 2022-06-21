@@ -1,5 +1,6 @@
 import argparse
 import os.path as osp
+import random
 
 import torch
 import torch.nn.functional as F
@@ -27,17 +28,22 @@ parser.add_argument('--wandb', action='store_true', help='Track experiment')
 args = parser.parse_args()
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-wandb.init(project="good project")
+wandb.init(project="PCF", group="playground",
+           name="play"+wandb.util.generate_id())
 
 graph = graph_loader('BA', n=500, seed=1)
 
 
 def setup_nx_graph(graph, train_ratio=0.8):
-
-    x = [0.5]
-    y = [0.9]
-    nx.set_node_attributes(graph, x, "x")
-    nx.set_node_attributes(graph, y, "y")
+    for n in np.arange(len(graph)):
+        if n < 250:
+            graph.nodes[n]['x'] = np.float32(
+                np.random.uniform(low=0.0, high=0.5, size=(5,)))
+            graph.nodes[n]['y'] = np.float32(1.0)
+        else:
+            graph.nodes[n]['x'] = np.float32(
+                np.random.uniform(low=0.5, high=1.0, size=(5,)))
+            graph.nodes[n]['y'] = np.float32(0.0)
     pyg_graph = from_networkx(graph)
 
     # Split the data
@@ -75,7 +81,9 @@ class GCN(torch.nn.Module):
         super().__init__()
         self.conv1 = GCNConv(in_channels, hidden_channels, cached=True,
                              normalize=not args.use_gdc)
-        self.conv2 = GCNConv(hidden_channels, out_channels, cached=True,
+        self.conv2 = GCNConv(hidden_channels, hidden_channels, cached=True,
+                             normalize=not args.use_gdc)
+        self.conv3 = GCNConv(hidden_channels, out_channels, cached=True,
                              normalize=not args.use_gdc)
 
     def forward(self, x, edge_index, edge_weight=None):
@@ -83,10 +91,11 @@ class GCN(torch.nn.Module):
         x = self.conv1(x, edge_index, edge_weight).relu()
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.conv2(x, edge_index, edge_weight)
+        x = self.conv3(x, edge_index, edge_weight)
         return torch.sigmoid(x)
 
 
-model = GCN(1, args.hidden_channels, 1)
+model = GCN(-1, args.hidden_channels, 1)
 # model, data = model.to(device), data.to(device)
 optimizer = torch.optim.Adam([
     dict(params=model.conv1.parameters(), weight_decay=5e-4),
@@ -99,7 +108,7 @@ def train(data):
     optimizer.zero_grad()
     out = model(data.x, data.edge_index, data.edge_weight)
     loss = F.binary_cross_entropy(
-        out[data.train_mask], data.y[data.train_mask])
+        out[data.train_mask], data.y[data.train_mask][:, None])
     loss.backward()
     optimizer.step()
     return float(loss)
@@ -125,5 +134,4 @@ for epoch in range(1, args.epochs + 1):
     if val_acc > best_val_acc:
         best_val_acc = val_acc
         test_acc = tmp_test_acc
-    # wandb.log(Epoch=epoch, Loss=loss, Train=train_acc, Val=val_acc, Test=test_acc)
-    wandb.log({'accuracy': train_acc, 'loss': loss})
+    wandb.log({'accuracy': train_acc, 'test_acc': test_acc, 'loss': loss})

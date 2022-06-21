@@ -11,12 +11,10 @@ playground:
   propagation_method: 'shortest'  # shortest random
   centrality_method: 'betweeness'  # betweeness load
 
-  k_a: 2
-  attack: 'rb_node'
-  attack_approx: 0.1
+  k_a: 50
+  attack: 'rnd_edge'
 
   k_d: 0
-  defense: None
 
   robust_measure: 'largest_connected_component'
 

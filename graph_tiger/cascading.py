@@ -89,7 +89,7 @@ class Cascading(Simulation):
         # attacked nodes or edges
         if self.prm['attack'] is not None and self.prm['k_a'] > 0:
             self.failed = set(run_attack_method(self.S2VGraph.graph, self.prm['attack'], self.prm['k_a'],
-                                                approx=int(self.prm['attack_approx'] * len(self.S2VGraph.graph)), seed=self.prm['seed']))
+                                                approx=self.prm['attack_approx'], seed=self.prm['seed']))
 
             if get_attack_category(self.prm['attack']) == 'node':
                 for n in self.failed:
@@ -98,6 +98,7 @@ class Cascading(Simulation):
 
             elif get_attack_category(self.prm['attack']) == 'edge':
                 self.S2VGraph.graph.remove_edges_from(self.failed)
+                self.failed = set()
 
         # defended nodes or edges
         if self.prm['defense'] is not None and self.prm['k_d'] > 0:
@@ -126,6 +127,7 @@ class Cascading(Simulation):
     def set_load(self):
         if self.prm['load_method'] == 'shortest':
             self.load = self.capacity_og
+            # Uniform load percentage in the beginning
             self.capacity.update(
                 (x, y * (1.0 + self.prm['r'])) for x, y in self.capacity.items())
         else:
@@ -157,9 +159,9 @@ class Cascading(Simulation):
                                 for x, y in new_load.items())
             self.load.update(new_load)
 
-        for n in view.nodes:
-            if self.load[n] > self.capacity[n]:
-                failed_new.add(n)
+            for n in view.nodes:
+                if self.load[n] > self.capacity[n]:
+                    failed_new.add(n)
         else:
             for n in self.failed:
                 if self.load[n] > self.capacity[n]:

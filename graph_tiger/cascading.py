@@ -89,7 +89,7 @@ class Cascading(Simulation):
         # attacked nodes or edges
         if self.prm['attack'] is not None and self.prm['k_a'] > 0:
             self.failed = set(run_attack_method(self.S2VGraph.graph, self.prm['attack'], self.prm['k_a'],
-                                                approx=self.prm['attack_approx'], seed=self.prm['seed']))
+                                                approx=int(self.prm['attack_approx'] * len(self.S2VGraph.graph)), seed=self.prm['seed']))
 
             if get_attack_category(self.prm['attack']) == 'node':
                 for n in self.failed:

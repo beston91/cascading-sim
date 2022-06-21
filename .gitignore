@@ -33,3 +33,5 @@ MANIFEST
 backup/
 plots/
 old/
+wandb/
+outputs/

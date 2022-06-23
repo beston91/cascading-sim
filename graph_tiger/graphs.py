@@ -1,10 +1,10 @@
-import os
 import json
+import os
 import urllib.request
+
 import networkx as nx
 
-
-graph_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/datasets/'
+graph_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/datasets/"
 os.makedirs(graph_dir, exist_ok=True)
 
 
@@ -29,7 +29,11 @@ def graph_loader(graph_type, **kwargs):
         graph = custom[graph_type]()
 
     else:
-        print("Graph not supported. Select from one of the following graphs: {}".format(get_graph_options()))
+        print(
+            "Graph not supported. Select from one of the following graphs: {}".format(
+                get_graph_options()
+            )
+        )
         graph = None
 
     return graph
@@ -42,7 +46,7 @@ def download_dataset(dataset):
     :param dataset: a string representing the dataset to download
     """
     url_path = graph_urls[dataset][0]
-    local_path = graph_dir + url_path.split('datasets/')[1]
+    local_path = graph_dir + url_path.split("datasets/")[1]
 
     if not os.path.exists(local_path):
         urllib.request.urlretrieve(url_path, local_path)
@@ -65,9 +69,9 @@ def get_graph_options():
     """
 
     graph_options = {
-        'models': list(models.keys()),
-        'datasets': datasets,
-        'custom': list(custom.keys())
+        "models": list(models.keys()),
+        "datasets": datasets,
+        "custom": list(custom.keys()),
     }
 
     return json.dumps(graph_options, indent=1)
@@ -88,7 +92,8 @@ def erdos_reyni(n, p=None, seed=None):
     :return: a NetworkX graph
     """
 
-    if p is None: p = (1.0 / n + 0.1)
+    if p is None:
+        p = 1.0 / n + 0.1
     return nx.generators.erdos_renyi_graph(n=n, p=p, seed=seed)
 
 
@@ -148,21 +153,21 @@ def wdn_ky2():
 
     graph = nx.Graph()
 
-    with open(graph_dir + 'ky2.txt') as f:
+    with open(graph_dir + "ky2.txt") as f:
         lines = f.readlines()
         for line in lines:
-            if len(line.split('\t')) == 9:
-                u, v = line.strip().split('\t')[1:3]
+            if len(line.split("\t")) == 9:
+                u, v = line.strip().split("\t")[1:3]
                 u = u.strip()
                 v = v.strip()
-                if 'J' in u and 'J' in v:
+                if "J" in u and "J" in v:
                     graph.add_edge(u, v)
             else:
-                name, x_pos, y_pos = line.strip().split('\t')
+                name, x_pos, y_pos = line.strip().split("\t")
                 name = name.strip()
                 x_pos = float(x_pos.strip())
                 y_pos = float(y_pos.strip())
-                graph.nodes[name]['pos'] = [x_pos, y_pos]
+                graph.nodes[name]["pos"] = [x_pos, y_pos]
 
     graph = nx.convert_node_labels_to_integers(graph)
     return graph.subgraph(max(nx.connected_components(graph), key=len))
@@ -237,7 +242,9 @@ def email_eu_all():
     :return: undirected NetworkX graph
     """
 
-    graph = nx.read_edgelist(graph_dir + "email-EuAll.txt")  # , create_using=nx.DiGraph()
+    graph = nx.read_edgelist(
+        graph_dir + "email-EuAll.txt"
+    )  # , create_using=nx.DiGraph()
     return graph.subgraph(max(nx.connected_components(graph), key=len))
 
 
@@ -331,7 +338,7 @@ def electrical():
     :return: undirected NetworkX graph
     """
 
-    graph = nx.read_gml(graph_dir + "power.gml", label='id')
+    graph = nx.read_gml(graph_dir + "power.gml", label="id")
     return graph.subgraph(max(nx.connected_components(graph), key=len))
 
 
@@ -432,8 +439,7 @@ def two_c4_0_bridge():
     """
 
     G = nx.Graph()
-    G.add_edges_from([(0, 1), (0, 2), (1, 3), (2, 3),
-                      (4, 5), (5, 6), (6, 7), (7, 4)])
+    G.add_edges_from([(0, 1), (0, 2), (1, 3), (2, 3), (4, 5), (5, 6), (6, 7), (7, 4)])
     return G
 
 
@@ -445,9 +451,9 @@ def two_c4_1_bridge():
     """
 
     G = nx.Graph()
-    G.add_edges_from([(0, 1), (0, 2), (1, 3), (2, 3),
-                      (4, 5), (5, 6), (6, 7), (7, 4),
-                      (2, 4)])
+    G.add_edges_from(
+        [(0, 1), (0, 2), (1, 3), (2, 3), (4, 5), (5, 6), (6, 7), (7, 4), (2, 4)]
+    )
     return G
 
 
@@ -459,9 +465,9 @@ def two_c4_2_bridge():
     """
 
     G = nx.MultiGraph()
-    G.add_edges_from([(0, 1), (0, 2), (1, 3), (2, 3),
-                      (4, 5), (5, 6), (6, 7), (7, 4),
-                      (2, 4), (2, 4)])
+    G.add_edges_from(
+        [(0, 1), (0, 2), (1, 3), (2, 3), (4, 5), (5, 6), (6, 7), (7, 4), (2, 4), (2, 4)]
+    )
     return G
 
 
@@ -473,65 +479,113 @@ def two_c4_3_bridge():
     """
 
     G = nx.MultiGraph()
-    G.add_edges_from([(0, 1), (0, 2), (1, 3), (2, 3),
-                      (4, 5), (5, 6), (6, 7), (7, 4),
-                      (2, 4), (2, 4), (2, 4)])
+    G.add_edges_from(
+        [
+            (0, 1),
+            (0, 2),
+            (1, 3),
+            (2, 3),
+            (4, 5),
+            (5, 6),
+            (6, 7),
+            (7, 4),
+            (2, 4),
+            (2, 4),
+            (2, 4),
+        ]
+    )
     return G
 
 
 graph_urls = {
-    'wiki_vote': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/wiki-Vote.txt', 'https://snap.stanford.edu/data/wiki-Vote.txt.gz'),
-    'p2p_gnuetella08': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/p2p-Gnutella08.txt', 'https://snap.stanford.edu/data/p2p-Gnutella08.txt.gz'),
-
-    'dblp': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/dblp.txt', 'https://snap.stanford.edu/data/bigdata/communities/com-dblp.ungraph.txt.gz'),
-    'ca_hep_th': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/cit-HepTh.txt', 'https://snap.stanford.edu/data/cit-HepTh.txt.gz'),
-    'cit_hep_th': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/ca-HepTh.txt', 'https://snap.stanford.edu/data/M.txt.gz'),
-    'ca_grqc': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/ca-GrQc.txt', 'https://snap.stanford.edu/data/ca-GrQc.txt.gz'),
-    'ca_astro_ph': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/ca-AstroPh.txt', 'https://snap.stanford.edu/data/ca-AstroPh.txt.gz'),
-
-    'email_eu_all': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/email-EuAll.txt', 'https://snap.stanford.edu/data/email-EuAll.txt.gz'),
-    'enron_email': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/email-enron.txt', 'https://snap.stanford.edu/data/email-Enron.txt.gz'),
-
-    'ky2': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/ky2.txt', 'http://www.uky.edu/WDST/KYEPAzip/ky2%20EPANET.zip'),
-    'as_733': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/as19971108.txt', 'http://snap.stanford.edu/data/as-733.tar.gz'),
-    'oregon_1': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/as-oregon1.txt', 'https://snap.stanford.edu/data/oregon1_010331.txt.gz'),
-    'electrical': ('https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/power.gml', 'http://konect.uni-koblenz.de/downloads/tsv/opsahl-powergrid.tar.bz2'),
+    "wiki_vote": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/wiki-Vote.txt",
+        "https://snap.stanford.edu/data/wiki-Vote.txt.gz",
+    ),
+    "p2p_gnuetella08": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/p2p-Gnutella08.txt",
+        "https://snap.stanford.edu/data/p2p-Gnutella08.txt.gz",
+    ),
+    "dblp": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/dblp.txt",
+        "https://snap.stanford.edu/data/bigdata/communities/com-dblp.ungraph.txt.gz",
+    ),
+    "ca_hep_th": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/cit-HepTh.txt",
+        "https://snap.stanford.edu/data/cit-HepTh.txt.gz",
+    ),
+    "cit_hep_th": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/ca-HepTh.txt",
+        "https://snap.stanford.edu/data/M.txt.gz",
+    ),
+    "ca_grqc": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/ca-GrQc.txt",
+        "https://snap.stanford.edu/data/ca-GrQc.txt.gz",
+    ),
+    "ca_astro_ph": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/ca-AstroPh.txt",
+        "https://snap.stanford.edu/data/ca-AstroPh.txt.gz",
+    ),
+    "email_eu_all": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/email-EuAll.txt",
+        "https://snap.stanford.edu/data/email-EuAll.txt.gz",
+    ),
+    "enron_email": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/email-enron.txt",
+        "https://snap.stanford.edu/data/email-Enron.txt.gz",
+    ),
+    "ky2": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/ky2.txt",
+        "http://www.uky.edu/WDST/KYEPAzip/ky2%20EPANET.zip",
+    ),
+    "as_733": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/as19971108.txt",
+        "http://snap.stanford.edu/data/as-733.tar.gz",
+    ),
+    "oregon_1": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/as-oregon1.txt",
+        "https://snap.stanford.edu/data/oregon1_010331.txt.gz",
+    ),
+    "electrical": (
+        "https://raw.githubusercontent.com/safreita1/TIGER/master/datasets/power.gml",
+        "http://konect.uni-koblenz.de/downloads/tsv/opsahl-powergrid.tar.bz2",
+    ),
     # 'roadnet_ca': 'https://snap.stanford.edu/data/roadNet-CA.txt.gz'
 }
 
 models = {
-    'ER': erdos_reyni,
-    'WS': watts_strogatz,
-    'BA': barabasi_albert,
-    'CSF': clustered_scale_free
+    "ER": erdos_reyni,
+    "WS": watts_strogatz,
+    "BA": barabasi_albert,
+    "CSF": clustered_scale_free,
 }
 
 datasets = {
-    'ky2': wdn_ky2,
-    'as_733': as_733,
-    'p2p_gnuetella08': p2p_gnuetella08,
-    'ca_grqc': ca_grqc,
-    'cit_hep_th': cit_hep_th,
-    'wiki_vote': wiki_vote,
-    'email_eu_all': email_eu_all,
-    'dblp': dblp,
-    'ca_astro_ph': ca_astro_ph,
-    'ca_hep_th': ca_hep_th,
-    'enron_email': enron_email,
-    'karate': karate,
-    'oregon_1': oregeon_1,
-    'electrical': electrical,
+    "ky2": wdn_ky2,
+    "as_733": as_733,
+    "p2p_gnuetella08": p2p_gnuetella08,
+    "ca_grqc": ca_grqc,
+    "cit_hep_th": cit_hep_th,
+    "wiki_vote": wiki_vote,
+    "email_eu_all": email_eu_all,
+    "dblp": dblp,
+    "ca_astro_ph": ca_astro_ph,
+    "ca_hep_th": ca_hep_th,
+    "enron_email": enron_email,
+    "karate": karate,
+    "oregon_1": oregeon_1,
+    "electrical": electrical,
 }
 
 custom = {
-    'o4': o4_graph,
-    'p4': p4_graph,
-    's4': s4_graph,
-    'c4': c4_graph,
-    'k4-1': k4_1_graph,
-    'k4-2': k4_2_graph,
-    'c4_no_bridge': two_c4_0_bridge,
-    'c4_1_bridge': two_c4_1_bridge,
-    'c4_2_bridge': two_c4_2_bridge,
-    'c4_3_bridge': two_c4_3_bridge
+    "o4": o4_graph,
+    "p4": p4_graph,
+    "s4": s4_graph,
+    "c4": c4_graph,
+    "k4-1": k4_1_graph,
+    "k4-2": k4_2_graph,
+    "c4_no_bridge": two_c4_0_bridge,
+    "c4_1_bridge": two_c4_1_bridge,
+    "c4_2_bridge": two_c4_2_bridge,
+    "c4_3_bridge": two_c4_3_bridge,
 }

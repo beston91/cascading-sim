@@ -1,6 +1,6 @@
 import bezier
-import numpy as np
 import networkx as nx
+import numpy as np
 from scipy import sparse
 from scipy.linalg import eigh
 from scipy.sparse.linalg import eigsh
@@ -10,7 +10,9 @@ def gpu_available():
     from pip._internal.utils.misc import get_installed_distributions
 
     gpu = False
-    installed_packages = [package.project_name for package in get_installed_distributions()]
+    installed_packages = [
+        package.project_name for package in get_installed_distributions()
+    ]
 
     if any("cupy" in s for s in installed_packages):
         gpu = True
@@ -26,10 +28,14 @@ def get_sparse_graph(graph):
     :return: Scipy sparse adjacency matrix
     """
 
-    return nx.to_scipy_sparse_matrix(graph, format='csr', dtype=np.float, nodelist=graph.nodes)
+    return nx.to_scipy_sparse_matrix(
+        graph, format="csr", dtype=np.float, nodelist=graph.nodes
+    )
 
 
-def get_adjacency_spectrum(graph, k=np.inf, eigvals_only=False, which='LA', use_gpu=False):
+def get_adjacency_spectrum(
+    graph, k=np.inf, eigvals_only=False, which="LA", use_gpu=False
+):
     """
     Gets the top k eigenpairs of the adjacency matrix
 
@@ -46,29 +52,47 @@ def get_adjacency_spectrum(graph, k=np.inf, eigvals_only=False, which='LA', use_
         eigpairs = eigh(A, eigvals_only=eigvals_only)
 
     else:
-        A = nx.to_scipy_sparse_matrix(graph, format='csr', dtype=np.float, nodelist=graph.nodes)
+        A = nx.to_scipy_sparse_matrix(
+            graph, format="csr", dtype=np.float, nodelist=graph.nodes
+        )
 
         if gpu_available() and use_gpu:
             import cupy as cp
             import cupyx.scipy.sparse.linalg as cp_linalg
 
             A_gpu = cp.sparse.csr_matrix(A)
-            eigpairs = cp_linalg.eigsh(A_gpu, k=min(k, len(graph) - 3), which=which, return_eigenvectors=not eigvals_only)
+            eigpairs = cp_linalg.eigsh(
+                A_gpu,
+                k=min(k, len(graph) - 3),
+                which=which,
+                return_eigenvectors=not eigvals_only,
+            )
 
             if type(eigpairs) is tuple:
                 eigpairs = list(eigpairs)
-                eigpairs[0], eigpairs[1] = cp.asnumpy(eigpairs[0]), cp.asnumpy(eigpairs[1])
+                eigpairs[0], eigpairs[1] = (
+                    cp.asnumpy(eigpairs[0]),
+                    cp.asnumpy(eigpairs[1]),
+                )
             else:
                 eigpairs = cp.asnumpy(eigpairs)
 
         else:
-            if use_gpu: print('Warning: GPU requested, but not available')
-            eigpairs = eigsh(A, k=min(k, len(graph) - 1), which=which, return_eigenvectors=not eigvals_only)
+            if use_gpu:
+                print("Warning: GPU requested, but not available")
+            eigpairs = eigsh(
+                A,
+                k=min(k, len(graph) - 1),
+                which=which,
+                return_eigenvectors=not eigvals_only,
+            )
 
     return eigpairs
 
 
-def get_laplacian_spectrum(graph, k=np.inf, which='SM', tol=1E-2, eigvals_only=True, use_gpu=False):
+def get_laplacian_spectrum(
+    graph, k=np.inf, which="SM", tol=1e-2, eigvals_only=True, use_gpu=False
+):
     """
     Gets the bottom k eigenpairs of the Laplacian matrix
 
@@ -81,14 +105,21 @@ def get_laplacian_spectrum(graph, k=np.inf, which='SM', tol=1E-2, eigvals_only=T
     :return: the eigenpair information
     """
 
-    if use_gpu: print('Warning: GPU requested, but not available for Laplacian measures')
+    if use_gpu:
+        print("Warning: GPU requested, but not available for Laplacian measures")
 
     # get all eigenvalues for small graphs
     if len(graph) < 100:
         lam = nx.laplacian_spectrum(graph)
     else:
         L = get_laplacian(graph)
-        lam = eigsh(L, k=min(k, len(graph) - 1), which=which, tol=tol, return_eigenvectors=not eigvals_only)
+        lam = eigsh(
+            L,
+            k=min(k, len(graph) - 1),
+            which=which,
+            tol=tol,
+            return_eigenvectors=not eigvals_only,
+        )
 
     lam = np.sort(lam)  # sort ascending
 
@@ -102,14 +133,22 @@ def get_laplacian(graph):
     :param graph: undirected NetworkX graph
     :return: Scipy sparse Laplacian matrix
     """
-    A = nx.to_scipy_sparse_matrix(graph, format='csr', dtype=np.float, nodelist=graph.nodes)
-    D = sparse.spdiags(data=A.sum(axis=1).flatten(), diags=[0], m=len(graph), n=len(graph), format='csr')
+    A = nx.to_scipy_sparse_matrix(
+        graph, format="csr", dtype=np.float, nodelist=graph.nodes
+    )
+    D = sparse.spdiags(
+        data=A.sum(axis=1).flatten(),
+        diags=[0],
+        m=len(graph),
+        n=len(graph),
+        format="csr",
+    )
     L = D - A
 
     return L
 
 
-def curved_edges(G, pos, dist_ratio=0.2, bezier_precision=20, polarity='random'):
+def curved_edges(G, pos, dist_ratio=0.2, bezier_precision=20, polarity="random"):
     """
     Internal function to enable Bezier curved edges. Code originally from 'beyondbeneath' @ https://github.com/beyondbeneath/bezier-curved-edges-networkx
     """
@@ -117,31 +156,43 @@ def curved_edges(G, pos, dist_ratio=0.2, bezier_precision=20, polarity='random')
     edges = np.array(G.edges())
     l = edges.shape[0]
 
-    if polarity == 'random':
+    if polarity == "random":
         # Random polarity of curve
         rnd = np.where(np.random.randint(2, size=l) == 0, -1, 1)
     else:
         # Create a fixed (hashed) polarity column in the case we use fixed polarity
         # This is useful, e.g., for animations
-        rnd = np.where(np.mod(np.vectorize(hash)(edges[:, 0]) + np.vectorize(hash)(edges[:, 1]), 2) == 0, -1, 1)
+        rnd = np.where(
+            np.mod(np.vectorize(hash)(edges[:, 0]) + np.vectorize(hash)(edges[:, 1]), 2)
+            == 0,
+            -1,
+            1,
+        )
 
     # Coordinates (x,y) of both nodes for each edge
     # e.g., https://stackoverflow.com/questions/16992713/translate-every-element-in-numpy-array-according-to-key
     # Note the np.vectorize method doesn't work for all node position dictionaries for some reason
     u, inv = np.unique(edges, return_inverse=True)
-    coords = np.array([pos[x] for x in u])[inv].reshape([edges.shape[0], 2, edges.shape[1]])
+    coords = np.array([pos[x] for x in u])[inv].reshape(
+        [edges.shape[0], 2, edges.shape[1]]
+    )
     coords_node1 = coords[:, 0, :]
     coords_node2 = coords[:, 1, :]
 
     # Swap node1/node2 allocations to make sure the directionality works correctly
     should_swap = coords_node1[:, 0] > coords_node2[:, 0]
-    coords_node1[should_swap], coords_node2[should_swap] = coords_node2[should_swap], coords_node1[should_swap]
+    coords_node1[should_swap], coords_node2[should_swap] = (
+        coords_node2[should_swap],
+        coords_node1[should_swap],
+    )
 
     # Distance for control points
     dist = dist_ratio * np.sqrt(np.sum((coords_node1 - coords_node2) ** 2, axis=1))
 
     # Gradients of line connecting node & perpendicular
-    m1 = (coords_node2[:, 1] - coords_node1[:, 1]) / (coords_node2[:, 0] - coords_node1[:, 0])
+    m1 = (coords_node2[:, 1] - coords_node1[:, 1]) / (
+        coords_node2[:, 0] - coords_node1[:, 0]
+    )
     m2 = -1 / m1
 
     # Temporary points along the line which connects two nodes
@@ -159,13 +210,19 @@ def curved_edges(G, pos, dist_ratio=0.2, bezier_precision=20, polarity='random')
     coords_node2_ctrl = coords_node2_displace + (rnd * v2 * t2).T
 
     # Combine all these four (x,y) columns into a 'node matrix'
-    node_matrix = np.array([coords_node1, coords_node1_ctrl, coords_node2_ctrl, coords_node2])
+    node_matrix = np.array(
+        [coords_node1, coords_node1_ctrl, coords_node2_ctrl, coords_node2]
+    )
 
     # Create the Bezier curves and store them in a list
     curveplots = []
     for i in range(l):
         nodes = node_matrix[:, i, :].T
-        curveplots.append(bezier.Curve(nodes, degree=3).evaluate_multi(np.linspace(0, 1, bezier_precision)).T)
+        curveplots.append(
+            bezier.Curve(nodes, degree=3)
+            .evaluate_multi(np.linspace(0, 1, bezier_precision))
+            .T
+        )
 
     # Return an array of these curves
     curves = np.array(curveplots)

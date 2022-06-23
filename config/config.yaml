@@ -1,18 +1,14 @@
 playground:
   runs: 1
-  steps: 100
+  steps: 20
   seed: 1
 
   l: 0.8
-  r: 0.4
+  r: 0.3
   c_approx: 1.0
 
-  load_method: 'shortest'  # shortest random
-  propagation_method: 'shortest'  # shortest random
-  centrality_method: 'betweeness'  # betweeness load
-
-  k_a: 50
-  attack: 'rnd_edge'
+  k_a: 35
+  attack: 'ns_line_edge'
 
   k_d: 0
 

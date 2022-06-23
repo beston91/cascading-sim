@@ -1,12 +1,13 @@
-import scipy
 import heapq
-import numpy as np
-from scipy.sparse.linalg import eigsh
-from scipy.interpolate import interp1d
 
-from graph_tiger.simulations import Simulation
-from graph_tiger.measures import run_measure
+import numpy as np
+import scipy
+from scipy.interpolate import interp1d
+from scipy.sparse.linalg import eigsh
+
 from graph_tiger.graphs import *
+from graph_tiger.measures import run_measure
+from graph_tiger.simulations import Simulation
 from graph_tiger.utils import get_sparse_graph
 
 
@@ -79,7 +80,7 @@ def get_node_ns(graph, k=3):
     else:
         sparse_graph = graph
 
-    lam, u = eigsh(sparse_graph, k=1, which='LA')
+    lam, u = eigsh(sparse_graph, k=1, which="LA")
     lam = lam[0]
 
     u = np.abs(np.real(u).flatten())
@@ -123,13 +124,13 @@ def get_node_eig(graph, k=3):
     :return: a list of nodes to attack
     """
 
-    centrality = nx.eigenvector_centrality(graph, tol=1E-3, max_iter=500)
+    centrality = nx.eigenvector_centrality(graph, tol=1e-3, max_iter=500)
     nodes = heapq.nlargest(k, centrality, key=centrality.get)
 
     return nodes
 
 
-def get_node_id(graph,  k=3):
+def get_node_id(graph, k=3):
     """
     Get k nodes to attack based on Initial Degree (ID) Removal :cite:`beygelzimer2005improving`.
 
@@ -373,46 +374,44 @@ def get_edge_rnd(graph, k=3):
 
 
 categories = {
-    'ns_node': 'node',
-    'pr_node': 'node',
-    'eig_node': 'node',
-    'id_node': 'node',
-    'rd_node': 'node',
-    'ib_node': 'node',
-    'rb_node': 'node',
-    'rnd_node': 'node',
+    "ns_node": "node",
+    "pr_node": "node",
+    "eig_node": "node",
+    "id_node": "node",
+    "rd_node": "node",
+    "ib_node": "node",
+    "rb_node": "node",
+    "rnd_node": "node",
     None: None,
-
-    'ns_line_edge': 'edge',
-    'pr_line_edge': 'edge',
-    'eig_line_edge': 'edge',
-    'deg_line_edge': 'edge',
-    'id_edge': 'edge',
-    'rd_edge': 'edge',
-    'ib_edge': 'edge',
-    'rb_edge': 'edge',
-    'rnd_edge': 'edge'
+    "ns_line_edge": "edge",
+    "pr_line_edge": "edge",
+    "eig_line_edge": "edge",
+    "deg_line_edge": "edge",
+    "id_edge": "edge",
+    "rd_edge": "edge",
+    "ib_edge": "edge",
+    "rb_edge": "edge",
+    "rnd_edge": "edge",
 }
 
 methods = {
-    'ns_node': get_node_ns,
-    'pr_node': get_node_pr,
-    'eig_node': get_node_eig,
-    'id_node': get_node_id,
-    'rd_node': get_node_rd,
-    'ib_node': get_node_ib,
-    'rb_node': get_node_rb,
-    'rnd_node': get_node_rnd,
-
-    'ns_line_edge': get_edge_line_ns,
-    'pr_line_edge': get_edge_line_pr,
-    'eig_line_edge': get_edge_line_eig,
-    'deg_line_edge': get_edge_line_deg,
-    'id_edge': get_edge_id,
-    'rd_edge': get_edge_rd,
-    'ib_edge': get_edge_ib,
-    'rb_edge': get_edge_rb,
-    'rnd_edge': get_edge_rnd
+    "ns_node": get_node_ns,
+    "pr_node": get_node_pr,
+    "eig_node": get_node_eig,
+    "id_node": get_node_id,
+    "rd_node": get_node_rd,
+    "ib_node": get_node_ib,
+    "rb_node": get_node_rb,
+    "rnd_node": get_node_rnd,
+    "ns_line_edge": get_edge_line_ns,
+    "pr_line_edge": get_edge_line_pr,
+    "eig_line_edge": get_edge_line_eig,
+    "deg_line_edge": get_edge_line_deg,
+    "id_edge": get_edge_id,
+    "rd_edge": get_edge_rd,
+    "ib_edge": get_edge_ib,
+    "rb_edge": get_edge_rb,
+    "rnd_edge": get_edge_rnd,
 }
 
 
@@ -429,26 +428,28 @@ class Attack(Simulation):
     :param **kwargs: see parent class Simulation for additional options
     """
 
-    def __init__(self, graph, runs=10, steps=50, attack='id_node', defense=None, k_d=0, **kwargs):
+    def __init__(
+        self, graph, runs=10, steps=50, attack="id_node", defense=None, k_d=0, **kwargs
+    ):
         super().__init__(graph, runs, steps, **kwargs)
         self.S2VGraph.graph = graph
 
-        self.prm.update({
-            'attack': attack,
-            'attack_approx': None,
-
-            'k_d': k_d,
-            'defense': defense,
-
-            'robust_measure': 'largest_connected_component',
-        })
+        self.prm.update(
+            {
+                "attack": attack,
+                "attack_approx": None,
+                "k_d": k_d,
+                "defense": defense,
+                "robust_measure": "largest_connected_component",
+            }
+        )
 
         self.prm.update(kwargs)
 
-        if self.prm['plot_transition'] or self.prm['gif_animation']:
+        if self.prm["plot_transition"] or self.prm["gif_animation"]:
             self.node_pos, self.edge_pos = self.get_graph_coordinates()
 
-        self.save_dir = os.path.join(os.getcwd(), 'plots', self.get_plot_title(steps))
+        self.save_dir = os.path.join(os.getcwd(), "plots", self.get_plot_title(steps))
         os.makedirs(self.save_dir, exist_ok=True)
 
         self.attacked = []
@@ -468,28 +469,44 @@ class Attack(Simulation):
         self.connectivity = []
 
         # attacked nodes or edges
-        if self.prm['attack'] is not None and self.prm['steps'] > 0:
-            self.attacked = run_attack_method(self.S2VGraph.graph_, self.prm['attack'], self.prm['steps'], approx=self.prm['attack_approx'], seed=self.prm['seed'])
+        if self.prm["attack"] is not None and self.prm["steps"] > 0:
+            self.attacked = run_attack_method(
+                self.S2VGraph.graph_,
+                self.prm["attack"],
+                self.prm["steps"],
+                approx=self.prm["attack_approx"],
+                seed=self.prm["seed"],
+            )
 
-        elif self.prm['attack'] is not None:
-            print(self.prm['attack'], "not available or k <= 0")
+        elif self.prm["attack"] is not None:
+            print(self.prm["attack"], "not available or k <= 0")
 
         # defended nodes or edges
-        if self.prm['defense'] is not None and self.prm['k_d'] > 0:
+        if self.prm["defense"] is not None and self.prm["k_d"] > 0:
             from graph_tiger.defenses import get_defense_category, run_defense_method
 
-            if get_defense_category(self.prm['defense']) == 'node':
-                self.protected = run_defense_method(self.S2VGraph.graph_, self.prm['defense'], self.prm['k_d'], seed=self.prm['seed'])
+            if get_defense_category(self.prm["defense"]) == "node":
+                self.protected = run_defense_method(
+                    self.S2VGraph.graph_,
+                    self.prm["defense"],
+                    self.prm["k_d"],
+                    seed=self.prm["seed"],
+                )
 
-            elif get_defense_category(self.prm['defense']) == 'edge':
-                protected = run_defense_method(self.S2VGraph.graph_, self.prm['defense'], self.prm['k_d'], seed=self.prm['seed'])
+            elif get_defense_category(self.prm["defense"]) == "edge":
+                protected = run_defense_method(
+                    self.S2VGraph.graph_,
+                    self.prm["defense"],
+                    self.prm["k_d"],
+                    seed=self.prm["seed"],
+                )
 
-                self.S2VGraph.graph_.add_edges_from(protected['added'])
-                if 'removed' in protected:
-                    self.S2VGraph.graph_.remove_edges_from(protected['removed'])
+                self.S2VGraph.graph_.add_edges_from(protected["added"])
+                if "removed" in protected:
+                    self.S2VGraph.graph_.remove_edges_from(protected["removed"])
 
-        elif self.prm['defense'] is not None:
-            print(self.prm['defense'], "not available or k <= 0")
+        elif self.prm["defense"] is not None:
+            print(self.prm["defense"], "not available or k <= 0")
 
     def track_simulation(self, step):
         """
@@ -498,7 +515,7 @@ class Attack(Simulation):
         :param step: current simulation iteration
         """
 
-        measure = run_measure(self.S2VGraph.graph_, self.prm['robust_measure'])
+        measure = run_measure(self.S2VGraph.graph_, self.prm["robust_measure"])
 
         ccs = list(nx.connected_components(self.S2VGraph.graph_))
         ccs.sort(key=len, reverse=True)
@@ -518,10 +535,10 @@ class Attack(Simulation):
                     status[n] = 0
 
         self.sim_info[step] = {
-            'status':  list(status.values()),
-            'failed': len(self.attacked[0:step]),
-            'measure': measure,
-            'protected': self.protected
+            "status": list(status.values()),
+            "failed": len(self.attacked[0:step]),
+            "measure": measure,
+            "protected": self.protected,
         }
 
     def run_single_sim(self):
@@ -529,48 +546,53 @@ class Attack(Simulation):
         Run the attack simulation
         """
 
-        for step in range(self.prm['steps']):
+        for step in range(self.prm["steps"]):
             if step < len(self.attacked) and len(self.attacked) > 0:
 
                 self.track_simulation(step)
 
                 v = self.attacked[step]
 
-                if get_attack_category(self.prm['attack']) == 'edge':
+                if get_attack_category(self.prm["attack"]) == "edge":
                     self.S2VGraph.graph_.remove_edge(v[0], v[1])
 
-                elif get_attack_category(self.prm['attack']) == 'node' and v not in self.protected:
+                elif (
+                    get_attack_category(self.prm["attack"]) == "node"
+                    and v not in self.protected
+                ):
                     self.S2VGraph.graph_.remove_node(v)
 
             else:
-                print("Ending attack simulation early, ran of {}s".format(get_attack_category(self.prm['attack'])))
+                print(
+                    "Ending attack simulation early, ran of {}s".format(
+                        get_attack_category(self.prm["attack"])
+                    )
+                )
 
-        results = [v['measure'] if v['measure'] is not None else 0 for k, v in self.sim_info.items()]
+        results = [
+            v["measure"] if v["measure"] is not None else 0
+            for k, v in self.sim_info.items()
+        ]
         return results
 
 
 def main():
-    graph = graph_loader(graph_type='water', seed=1)
+    graph = graph_loader(graph_type="water", seed=1)
 
     params = {
-        'runs': 1,
-        'steps': 30,
-        'seed': 1,
-
-        'attack': 'rb_node',
-        'attack_approx': int(0.1*len(graph)),
-
-        'k_d': 0,
-        'defense': None,
-
-        'robust_measure': 'largest_connected_component',
-
-        'plot_transition': True,
-        'gif_animation': True,
-
-        'edge_style': None,
-        'node_style': 'spectral',
-        'fa_iter': 2000,
+        "runs": 1,
+        "steps": 30,
+        "seed": 1,
+        "attack": "rb_node",
+        "attack_approx": int(0.1 * len(graph)),
+        "k_d": 0,
+        "defense": None,
+        "robust_measure": "largest_connected_component",
+        "plot_transition": True,
+        "gif_animation": True,
+        "edge_style": None,
+        "node_style": "spectral",
+        "fa_iter": 2000,
     }
 
     cf = Attack(graph, **params)
@@ -578,5 +600,5 @@ def main():
     cf.plot_results(results)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

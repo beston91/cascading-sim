@@ -1,5 +1,5 @@
+from graph_tiger.attacks import get_attack_methods, run_attack_method
 from graph_tiger.graphs import karate
-from graph_tiger.attacks import run_attack_method, get_attack_methods
 
 
 def test_attack_strength():
@@ -26,22 +26,24 @@ def test_method_selection():
     """
 
     ground_truth = {  # karate graph top 4 nodes to be removed
-        'ns_node': [33, 0, 2, 32],
-        'pr_node': [33, 0, 32, 2],
-        'eig_node': [33, 0, 2, 32],
-        'id_node': [33, 0, 32, 2],
-        'rd_node': [33, 0, 32, 1],
-        'ib_node': [0, 33, 32, 2],
-        'rb_node': [0, 33, 32, 2],
-
-        'ns_line_edge': [(32, 33), (8, 33), (31, 33), (13, 33)],
-        'pr_line_edge': [(32, 33), (0, 2), (0, 1), (0, 31)],
-        'eig_line_edge': [(32, 33), (8, 33), (31, 33), (13, 33)],
-        'deg_line_edge': [(32, 33), (0, 2), (0, 1), (31, 33)],
-        'id_edge': [(32, 33), (0, 2), (0, 1), (2, 32)],
-        'rd_edge': [(32, 33), (0, 2), (0, 1), (2, 32)],
-        'ib_edge': ([(0, 31), (0, 6), (0, 5), (0, 2)],  [(0, 31), (0, 5), (0, 6), (0, 2)]),
-        'rb_edge': [(0, 31), (0, 2), (0, 8), (13, 33)],
+        "ns_node": [33, 0, 2, 32],
+        "pr_node": [33, 0, 32, 2],
+        "eig_node": [33, 0, 2, 32],
+        "id_node": [33, 0, 32, 2],
+        "rd_node": [33, 0, 32, 1],
+        "ib_node": [0, 33, 32, 2],
+        "rb_node": [0, 33, 32, 2],
+        "ns_line_edge": [(32, 33), (8, 33), (31, 33), (13, 33)],
+        "pr_line_edge": [(32, 33), (0, 2), (0, 1), (0, 31)],
+        "eig_line_edge": [(32, 33), (8, 33), (31, 33), (13, 33)],
+        "deg_line_edge": [(32, 33), (0, 2), (0, 1), (31, 33)],
+        "id_edge": [(32, 33), (0, 2), (0, 1), (2, 32)],
+        "rd_edge": [(32, 33), (0, 2), (0, 1), (2, 32)],
+        "ib_edge": (
+            [(0, 31), (0, 6), (0, 5), (0, 2)],
+            [(0, 31), (0, 5), (0, 6), (0, 2)],
+        ),
+        "rb_edge": [(0, 31), (0, 2), (0, 8), (13, 33)],
     }
 
     graph = karate()
@@ -53,10 +55,12 @@ def test_method_selection():
         values = run_attack_method(graph, method=method, k=k, seed=1)
 
         # print(method, values)
-        if 'rnd' not in method and method != 'ib_edge':
-            assert (values == ground_truth[method])
-        elif method == 'ib_edge':
-            assert (values == ground_truth[method][0] or values == ground_truth[method][1])
+        if "rnd" not in method and method != "ib_edge":
+            assert values == ground_truth[method]
+        elif method == "ib_edge":
+            assert (
+                values == ground_truth[method][0] or values == ground_truth[method][1]
+            )
 
 
 def main():
@@ -64,5 +68,5 @@ def main():
     test_attack_strength()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,7 +1,8 @@
 import math
-import stopit
-import numpy as np
+
 import networkx as nx
+import numpy as np
+import stopit
 
 from graph_tiger.utils import get_adjacency_spectrum, get_laplacian_spectrum
 
@@ -23,11 +24,11 @@ def run_measure(graph, measure, k=np.inf, use_gpu=False):
         return result
 
     except stopit.TimeoutException:
-        print('timed out', measure)
+        print("timed out", measure)
         return None
 
     except Exception as e:
-        print('error', e, measure)
+        print("error", e, measure)
         return None
 
 
@@ -41,9 +42,9 @@ def get_measures():
     return list(measures.keys())
 
 
-'''
+"""
 Graph Connectivity Measures
-'''
+"""
 
 
 # def binary_connectivity(graph):
@@ -141,7 +142,9 @@ def avg_vertex_betweenness(graph, k=np.inf, **kwargs):
     :return: a float
     """
 
-    node_centralities = nx.betweenness_centrality(graph, k=min(len(graph), k), normalized=False, endpoints=True)
+    node_centralities = nx.betweenness_centrality(
+        graph, k=min(len(graph), k), normalized=False, endpoints=True
+    )
     avg_betw = sum(list(node_centralities.values())) / len(node_centralities)
 
     return round(avg_betw, 2)
@@ -159,7 +162,9 @@ def avg_edge_betweenness(graph, k=np.inf, **kwargs):
     :return: a float
     """
 
-    edge_centralities = nx.edge_betweenness_centrality(graph, k=min(len(graph), k), normalized=False)
+    edge_centralities = nx.edge_betweenness_centrality(
+        graph, k=min(len(graph), k), normalized=False
+    )
 
     if len(edge_centralities) > 0:
         avg_betweenness = sum(list(edge_centralities.values())) / len(edge_centralities)
@@ -209,7 +214,9 @@ def spectral_radius(graph, use_gpu=False, **kwargs):
     :param use_gpu: defaults to False; set to True to use GPU (if available)
     :return: a float
     """
-    lam = get_adjacency_spectrum(graph, k=1, which='LA', eigvals_only=True, use_gpu=use_gpu)
+    lam = get_adjacency_spectrum(
+        graph, k=1, which="LA", eigvals_only=True, use_gpu=use_gpu
+    )
 
     idx = lam.argsort()[::-1]  # sort descending algebraic
     lam = lam[idx]
@@ -229,7 +236,9 @@ def spectral_gap(graph, use_gpu=False, **kwargs):
     :param use_gpu: defaults to False; set to True to use GPU (if available)
     :return: a float
     """
-    lam = get_adjacency_spectrum(graph, k=2, which='LA', eigvals_only=True, use_gpu=use_gpu)
+    lam = get_adjacency_spectrum(
+        graph, k=2, which="LA", eigvals_only=True, use_gpu=use_gpu
+    )
 
     idx = lam.argsort()[::-1]  # sort descending algebraic
     lam = lam[idx]
@@ -247,7 +256,9 @@ def natural_connectivity(graph, k=np.inf, use_gpu=False, **kwargs):
     :param use_gpu: defaults to False; set to True to use GPU (if available)
     :return: a float
     """
-    lam = get_adjacency_spectrum(graph, k=k, which='LA', eigvals_only=True, use_gpu=use_gpu)
+    lam = get_adjacency_spectrum(
+        graph, k=k, which="LA", eigvals_only=True, use_gpu=use_gpu
+    )
 
     idx = lam.argsort()[::-1]  # sort descending algebraic
     lam = lam[idx]
@@ -282,7 +293,9 @@ def spectral_scaling(graph, k=np.inf, use_gpu=False, **kwargs):
     :param use_gpu: defaults to False; set to True to use GPU (if available)
     :return: a float
     """
-    lam, u = get_adjacency_spectrum(graph, k=k, which='LM', eigvals_only=False, use_gpu=use_gpu)
+    lam, u = get_adjacency_spectrum(
+        graph, k=k, which="LM", eigvals_only=False, use_gpu=use_gpu
+    )
 
     idx = np.abs(lam).argsort()[::-1]  # sort descending magnitude
     lam = lam[idx]
@@ -292,10 +305,18 @@ def spectral_scaling(graph, k=np.inf, use_gpu=False, **kwargs):
 
     sc = 0
     for i in range(len(graph)):
-        sc += np.power(np.log10(u[:, 0][i]) - (np.log10(np.power(np.sinh(lam[0]), -0.5)) + 0.5 * np.log10(odd_subgraph_centrality(i, lam, u))), 2)
+        sc += np.power(
+            np.log10(u[:, 0][i])
+            - (
+                np.log10(np.power(np.sinh(lam[0]), -0.5))
+                + 0.5 * np.log10(odd_subgraph_centrality(i, lam, u))
+            ),
+            2,
+        )
 
     sc = np.sqrt(sc / len(graph))
-    if np.isnan(sc) or np.isinf(sc): sc = None
+    if np.isnan(sc) or np.isinf(sc):
+        sc = None
 
     return sc
 
@@ -312,9 +333,9 @@ def generalized_robustness_index(graph, k=30, use_gpu=False, **kwargs):
     return spectral_scaling(graph, k=k, use_gpu=use_gpu, kwargs=kwargs)
 
 
-'''
+"""
 Laplacian Spectral Measures
-'''
+"""
 
 
 def algebraic_connectivity(graph, **kwargs):
@@ -327,7 +348,7 @@ def algebraic_connectivity(graph, **kwargs):
     :param graph: undirected NetworkX graph
     :return: a float
     """
-    lam = get_laplacian_spectrum(graph, k=2, use_gpu=kwargs['use_gpu'])
+    lam = get_laplacian_spectrum(graph, k=2, use_gpu=kwargs["use_gpu"])
 
     alg_connect = round(lam[1], 2)
 
@@ -344,7 +365,7 @@ def num_spanning_trees(graph, k=np.inf, **kwargs):
     :param graph: undirected NetworkX graph
     :return: a float
     """
-    lam = get_laplacian_spectrum(graph, k=k, use_gpu=kwargs['use_gpu'])
+    lam = get_laplacian_spectrum(graph, k=k, use_gpu=kwargs["use_gpu"])
 
     num_trees = round(np.prod(lam[1:]) / len(graph), 2)
 
@@ -361,36 +382,35 @@ def effective_resistance(graph, k=np.inf, **kwargs):
     :param graph: undirected NetworkX graph
     :return: a float
     """
-    lam = get_laplacian_spectrum(graph, k=k, use_gpu=kwargs['use_gpu'])
+    lam = get_laplacian_spectrum(graph, k=k, use_gpu=kwargs["use_gpu"])
 
     resistance = round(len(graph) * np.sum(1.0 / lam[1:]), 2)
 
-    if resistance < 0: resistance = np.inf
+    if resistance < 0:
+        resistance = np.inf
 
     return resistance
 
 
 measures = {
     # graph connectivity
-    'node_connectivity': node_connectivity,
-    'edge_connectivity': edge_connectivity,
-    'diameter': diameter,
-    'average_distance': avg_distance,
-    'average_inverse_distance': avg_inverse_distance,
-    'average_vertex_betweenness': avg_vertex_betweenness,
-    'average_edge_betweenness': avg_edge_betweenness,
-    'average_clustering_coefficient': average_clustering_coefficient,
-    'largest_connected_component': largest_connected_component,
-
+    "node_connectivity": node_connectivity,
+    "edge_connectivity": edge_connectivity,
+    "diameter": diameter,
+    "average_distance": avg_distance,
+    "average_inverse_distance": avg_inverse_distance,
+    "average_vertex_betweenness": avg_vertex_betweenness,
+    "average_edge_betweenness": avg_edge_betweenness,
+    "average_clustering_coefficient": average_clustering_coefficient,
+    "largest_connected_component": largest_connected_component,
     # adjacency matrix spectrum
-    'spectral_radius': spectral_radius,
-    'spectral_gap': spectral_gap,
-    'natural_connectivity': natural_connectivity,
-    'spectral_scaling': spectral_scaling,
-    'generalized_robustness_index': generalized_robustness_index,
-
+    "spectral_radius": spectral_radius,
+    "spectral_gap": spectral_gap,
+    "natural_connectivity": natural_connectivity,
+    "spectral_scaling": spectral_scaling,
+    "generalized_robustness_index": generalized_robustness_index,
     # laplacian matrix spectrum
-    'algebraic_connectivity': algebraic_connectivity,
-    'number_spanning_trees': num_spanning_trees,
-    'effective_resistance': effective_resistance
+    "algebraic_connectivity": algebraic_connectivity,
+    "number_spanning_trees": num_spanning_trees,
+    "effective_resistance": effective_resistance,
 }

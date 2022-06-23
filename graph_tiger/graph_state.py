@@ -1,17 +1,17 @@
-
 import math
+import warnings
 from copy import deepcopy
 
 import networkx as nx
 import numpy as np
 import xxhash
-import warnings
 
 budget_eps = 1e-5
 
 
 class S2VGraph(object):
     def __init__(self, g):
+        self.banned_actions = None
         self.graph = g
         self.num_nodes = g.number_of_nodes()
         self.node_labels = np.arange(self.num_nodes)
@@ -25,8 +25,12 @@ class S2VGraph(object):
         self.edge_pairs[:, 1] = y
         self.edge_pairs = np.ravel(self.edge_pairs)
 
-        self.node_degrees = np.array([deg for (node, deg) in sorted(
-            g.degree(), key=lambda deg_pair: deg_pair[0])])
+        self.node_degrees = np.array(
+            [
+                deg
+                for (node, deg) in sorted(g.degree(), key=lambda deg_pair: deg_pair[0])
+            ]
+        )
         self.first_node = None
         self.dynamic_edges = None
 
@@ -51,11 +55,16 @@ class S2VGraph(object):
         if self.first_node is None:
             self.banned_actions = self.get_invalid_first_nodes(budget)
         else:
-            self.banned_actions = self.get_invalid_edge_ends(
-                self.first_node, budget)
+            self.banned_actions = self.get_invalid_edge_ends(self.first_node, budget)
 
     def get_invalid_first_nodes(self, budget=None):
-        return set([node_id for node_id in self.node_labels if self.node_degrees[node_id] == (self.num_nodes - 1)])
+        return set(
+            [
+                node_id
+                for node_id in self.node_labels
+                if self.node_degrees[node_id] == (self.num_nodes - 1)
+            ]
+        )
 
     def get_invalid_edge_ends(self, query_node, budget=None):
         results = set()
@@ -69,11 +78,13 @@ class S2VGraph(object):
         results.update(np.ravel(existing_right[:, 0]))
 
         if self.dynamic_edges is not None:
-            dynamic_left = [entry[0]
-                            for entry in self.dynamic_edges if entry[0] == query_node]
+            dynamic_left = [
+                entry[0] for entry in self.dynamic_edges if entry[0] == query_node
+            ]
             results.update(dynamic_left)
-            dynamic_right = [entry[1]
-                             for entry in self.dynamic_edges if entry[1] == query_node]
+            dynamic_right = [
+                entry[1] for entry in self.dynamic_edges if entry[1] == query_node
+            ]
             results.update(dynamic_right)
         return results
 
@@ -109,6 +120,7 @@ class S2VGraph(object):
 
     def draw_to_file(self, filename):
         import matplotlib
+
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
 
@@ -124,8 +136,9 @@ class S2VGraph(object):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore")
             nx_graph = self.to_networkx()
-            adj_matrix = np.asarray(nx.convert_matrix.to_numpy_matrix(
-                nx_graph, nodelist=self.node_labels))
+            adj_matrix = np.asarray(
+                nx.convert_matrix.to_numpy_matrix(nx_graph, nodelist=self.node_labels)
+            )
 
         return adj_matrix
 

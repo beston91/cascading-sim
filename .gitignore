@@ -35,3 +35,4 @@ plots/
 old/
 wandb/
 outputs/
+experiment_data/

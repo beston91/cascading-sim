@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 from graph_tiger.attacks import get_attack_category, run_attack_method
 from graph_tiger.defenses import get_defense_category, run_defense_method
-from graph_tiger.graph_state import S2VGraph
 from graph_tiger.graphs import *
 from graph_tiger.measures import run_measure
 from graph_tiger.simulations import Simulation
@@ -17,7 +16,7 @@ class Cascading(Simulation):
     """
     This class simulates cascading failures on a network :cite:`crucitti2004model`.
 
-    :param graph: an undirected NetworkX graph
+    :param gnn_graph: an undirected NetworkX graph
     :param runs: an integer number of times to run the simulation
     :param steps: an integer number of steps to run a single simulation
     :param l: a float representing the maximum initial load for each node
@@ -25,15 +24,15 @@ class Cascading(Simulation):
     :param **kwargs: see parent class Simulation for additional options
     """
 
-    def __init__(self, graph, runs=10, steps=100, l=0.8, r=0.2, **kwargs):
-        super().__init__(graph, runs, steps, **kwargs)
+    def __init__(self, gnn_graph, runs=10, steps=100, l=0.8, r=0.2, **kwargs):
+        super().__init__(gnn_graph, runs, steps, **kwargs)
 
         self.capacity = None
         self.prm.update(
             {
                 "l": l,
                 "r": r,
-                "c_approx": len(graph),
+                "c_approx": len(gnn_graph.nx_graph),
                 "robust_measure": "largest_connected_component",
                 "k_a": 10,
                 "attack": "id_node",
@@ -51,17 +50,11 @@ class Cascading(Simulation):
         self.save_dir = os.path.join(os.getcwd(), "plots", self.get_plot_title(steps))
         os.makedirs(self.save_dir, exist_ok=True)
 
-        self.capacity_og = nx.betweenness_centrality(
-            self.S2VGraph.graph,
-            k=int(self.prm["c_approx"] * len(self.S2VGraph.graph)),
-            normalized=False,
-            endpoints=True,
-        )
-        normalizing_const = sum(self.capacity_og.values())
-        self.capacity_og.update(
-            (x, y / normalizing_const) for x, y in self.capacity_og.items()
-        )
-        self.max_val = max(self.capacity_og.values()) * (1.0 + self.prm["r"])
+        self.capacity_og = self.gnn_graph.capacity_og.copy()
+        self.capacity = self.gnn_graph.capacity.copy()
+        self.load = self.gnn_graph.load.copy()
+
+        self.max_val = max(self.capacity_og.values()) + self.gnn_graph.total_capacity * 0.1
 
         self.protected = set()
         self.failed = set()
@@ -74,12 +67,11 @@ class Cascading(Simulation):
         """
          Resets the simulation between each run
          """
-
+        assert self.prm["k_a"] < self.gnn_graph.num_nodes
         self.protected = set()
         self.failed = set()
         self.load = defaultdict()
         self.sim_info = defaultdict()
-        self.capacity = self.capacity_og.copy()
 
         self.set_load()
         self.track_simulation(step=0)
@@ -88,7 +80,7 @@ class Cascading(Simulation):
         if self.prm["attack"] is not None and self.prm["k_a"] > 0:
             self.failed = set(
                 run_attack_method(
-                    self.S2VGraph.graph,
+                    self.gnn_graph.nx_graph,
                     self.prm["attack"],
                     self.prm["k_a"],
                     approx=self.prm["attack_approx"],
@@ -102,7 +94,7 @@ class Cascading(Simulation):
                     self.load[n] = 2 * self.load[n]
 
             elif get_attack_category(self.prm["attack"]) == "edge":
-                self.S2VGraph.graph.remove_edges_from(self.failed)
+                self.gnn_graph.nx_graph.remove_edges_from(self.failed)
                 self.failed = set()
 
         # defended nodes or edges
@@ -110,7 +102,7 @@ class Cascading(Simulation):
 
             if get_defense_category(self.prm["defense"]) == "node":
                 self.protected = run_defense_method(
-                    self.S2VGraph.graph,
+                    self.gnn_graph.nx_graph,
                     self.prm["defense"],
                     self.prm["k_d"],
                     seed=self.prm["seed"],
@@ -121,16 +113,16 @@ class Cascading(Simulation):
 
             elif get_defense_category(self.prm["defense"]) == "edge":
                 edge_info = run_defense_method(
-                    self.S2VGraph.graph,
+                    self.gnn_graph.nx_graph,
                     self.prm["defense"],
                     self.prm["k_d"],
                     seed=self.prm["seed"],
                 )
 
-                self.S2VGraph.graph.add_edges_from(edge_info["added"])
+                self.gnn_graph.nx_graph.add_edges_from(edge_info["added"])
 
                 if "removed" in edge_info:
-                    self.S2VGraph.graph.remove_edges_from(edge_info["removed"])
+                    self.gnn_graph.nx_graph.remove_edges_from(edge_info["removed"])
 
         elif self.prm["defense"] is not None:
             print(self.prm["defense"], "not available or k <= 0")
@@ -138,29 +130,29 @@ class Cascading(Simulation):
         self.track_simulation(step=1)
 
     def set_load(self):
-        self.load = self.capacity_og
-        # Uniform load percentage in the beginning
-        self.capacity.update(
-            (x, y * (1.0 + self.prm["r"])) for x, y in self.capacity.items()
-        )
+        self.capacity_og = self.gnn_graph.capacity_og.copy()
+        self.capacity = self.gnn_graph.capacity.copy()
+        self.load = self.gnn_graph.load.copy()
+        # self.load = self.capacity_og
+        # # Uniform load percentage in the beginning
+        # self.capacity.update(
+        #     (x, y * (1.0 + self.prm["r"])) for x, y in self.capacity.items()
+        # )
 
     def compute_failed_new(self):
         failed_new = set()
 
         view = nx.subgraph_view(
-            self.S2VGraph.graph, filter_node=lambda node: node not in self.failed
+            self.gnn_graph.nx_graph, filter_node=lambda node: node not in self.failed
         )
 
         new_load = nx.betweenness_centrality(
             view,
             k=int(self.prm["c_approx"] * len(view)),
-            normalized=False,
+            normalized=True,
             endpoints=True,
         )
 
-        normalizing_const = sum(new_load.values())
-        if normalizing_const != 0:
-            new_load.update((x, y / normalizing_const) for x, y in new_load.items())
         self.load.update(new_load)
 
         for n in view.nodes:
@@ -176,17 +168,17 @@ class Cascading(Simulation):
         :param step: current simulation iteration
         """
 
-        nodes_functioning = set(self.S2VGraph.graph.nodes).difference(self.failed)
+        nodes_functioning = set(self.gnn_graph.nx_graph.nodes).difference(self.failed)
 
         measure = 0
         if len(nodes_functioning) > 0:
             measure = run_measure(
-                self.S2VGraph.graph.subgraph(nodes_functioning),
+                self.gnn_graph.nx_graph.subgraph(nodes_functioning),
                 self.prm["robust_measure"],
             )
 
         self.sim_info[step] = {
-            "status": [self.load[n] for n in self.S2VGraph.graph.nodes],
+            "status": [self.load[n] for n in self.gnn_graph.nx_graph.nodes],
             "failed": len(self.failed),
             "measure": measure,
             "protected": self.protected,
@@ -210,8 +202,8 @@ class Cascading(Simulation):
         return robustness
 
     def update_graph(self, n):
-        for nb in list(self.S2VGraph.graph.neighbors(n)):
-            self.S2VGraph.graph.remove_edge(n, nb)
+        for nb in list(self.gnn_graph.nx_graph.neighbors(n)):
+            self.gnn_graph.nx_graph.remove_edge(n, nb)
 
 
 def main():

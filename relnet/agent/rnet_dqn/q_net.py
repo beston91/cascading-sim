@@ -123,9 +123,8 @@ class QNet(nn.Module):
         picked_ones = []
         for i in range(len(batch_graph)):
             if picked_nodes is not None and picked_nodes[i] is not None:
-                assert (
-                    picked_nodes[i] >= 0 and picked_nodes[i] < batch_graph[i].num_nodes
-                )
+                assert 0 <= picked_nodes[i] < batch_graph[i].num_nodes
+
                 picked_ones.append(n_nodes + picked_nodes[i])
             n_nodes += batch_graph[i].num_nodes
             prefix_sum.append(n_nodes)
@@ -140,13 +139,13 @@ class QNet(nn.Module):
         return node_feat, torch.LongTensor(prefix_sum)
 
     def forward(self, states, actions, greedy_acts=False):
-        batch_graph, picked_nodes, banned_list = zip(*states)
+        batch_graph, _, _= zip(*states)
 
-        node_feat, prefix_sum = self.prepare_node_features(batch_graph, picked_nodes)
-        if get_device_placement() == "GPU":
-            node_feat = node_feat.cuda()
-            prefix_sum = prefix_sum.cuda()
-        edge_feat = None
+        node_feat, prefix_sum = self.prepare_node_features(batch_graph, None)
+        # if get_device_placement() == "GPU":
+        #     node_feat = node_feat.cuda()
+        #     prefix_sum = prefix_sum.cuda()
+        # edge_feat = None
         # embed, graph_embed = self.s2v(
         #     batch_graph, node_feat, edge_feat, pool_global=True)
         pyg_graphs = []
@@ -176,7 +175,7 @@ class QNet(nn.Module):
         raw_pred = self.linear_out(embed_s_a)
 
         if greedy_acts:
-            actions, _ = greedy_actions(raw_pred, prefix_sum, banned_list)
+            actions, _ = greedy_actions(raw_pred, prefix_sum, None)
 
         return actions, raw_pred, prefix_sum
 
@@ -194,6 +193,6 @@ class NStepQNet(nn.Module):
         self.num_steps = num_steps
 
     def forward(self, time_t, states, actions, greedy_acts=False):
-        assert time_t >= 0 and time_t < self.num_steps
+        assert 0 <= time_t < self.num_steps
 
         return self.list_mod[time_t](states, actions, greedy_acts)

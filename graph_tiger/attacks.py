@@ -419,7 +419,7 @@ class Attack(Simulation):
     """
     This class simulates a variety of attack strategies on an undirected NetworkX graph
 
-    :param graph: an undirected NetworkX graph
+    :param gnn_graph: an undirected NetworkX graph
     :param runs: an integer number of times to run the simulation
     :param steps: an integer number of steps to run a single simulation
     :param attack: a string representing the attack strategy to run
@@ -429,10 +429,10 @@ class Attack(Simulation):
     """
 
     def __init__(
-        self, graph, runs=10, steps=50, attack="id_node", defense=None, k_d=0, **kwargs
+        self, gnn_graph, runs=10, steps=50, attack="id_node", defense=None, k_d=0, **kwargs
     ):
-        super().__init__(graph, runs, steps, **kwargs)
-        self.S2VGraph.graph = graph
+        super().__init__(gnn_graph, runs, steps, **kwargs)
+        self.gnn_graph.nx_graph = gnn_graph
 
         self.prm.update(
             {
@@ -463,7 +463,7 @@ class Attack(Simulation):
         Resets the simulation between each run
         """
 
-        self.S2VGraph.graph_ = self.S2VGraph.graph.copy()
+        self.gnn_graph.nx_graph_ = self.gnn_graph.nx_graph.copy()
         self.attacked = []
         self.protected = []
         self.connectivity = []
@@ -471,7 +471,7 @@ class Attack(Simulation):
         # attacked nodes or edges
         if self.prm["attack"] is not None and self.prm["steps"] > 0:
             self.attacked = run_attack_method(
-                self.S2VGraph.graph_,
+                self.gnn_graph.nx_graph_,
                 self.prm["attack"],
                 self.prm["steps"],
                 approx=self.prm["attack_approx"],
@@ -487,7 +487,7 @@ class Attack(Simulation):
 
             if get_defense_category(self.prm["defense"]) == "node":
                 self.protected = run_defense_method(
-                    self.S2VGraph.graph_,
+                    self.gnn_graph.nx_graph_,
                     self.prm["defense"],
                     self.prm["k_d"],
                     seed=self.prm["seed"],
@@ -495,15 +495,15 @@ class Attack(Simulation):
 
             elif get_defense_category(self.prm["defense"]) == "edge":
                 protected = run_defense_method(
-                    self.S2VGraph.graph_,
+                    self.gnn_graph.nx_graph_,
                     self.prm["defense"],
                     self.prm["k_d"],
                     seed=self.prm["seed"],
                 )
 
-                self.S2VGraph.graph_.add_edges_from(protected["added"])
+                self.gnn_graph.nx_graph_.add_edges_from(protected["added"])
                 if "removed" in protected:
-                    self.S2VGraph.graph_.remove_edges_from(protected["removed"])
+                    self.gnn_graph.nx_graph_.remove_edges_from(protected["removed"])
 
         elif self.prm["defense"] is not None:
             print(self.prm["defense"], "not available or k <= 0")
@@ -515,15 +515,15 @@ class Attack(Simulation):
         :param step: current simulation iteration
         """
 
-        measure = run_measure(self.S2VGraph.graph_, self.prm["robust_measure"])
+        measure = run_measure(self.gnn_graph.nx_graph_, self.prm["robust_measure"])
 
-        ccs = list(nx.connected_components(self.S2VGraph.graph_))
+        ccs = list(nx.connected_components(self.gnn_graph.nx_graph_))
         ccs.sort(key=len, reverse=True)
 
         m = interp1d([0, len(ccs)], [0.15, 1])
 
         status = {}
-        for n in self.S2VGraph.graph:
+        for n in self.gnn_graph.nx_graph:
             for idx, cc in enumerate(ccs):
                 if n in self.attacked[0:step]:
                     status[n] = 1
@@ -554,13 +554,13 @@ class Attack(Simulation):
                 v = self.attacked[step]
 
                 if get_attack_category(self.prm["attack"]) == "edge":
-                    self.S2VGraph.graph_.remove_edge(v[0], v[1])
+                    self.gnn_graph.nx_graph_.remove_edge(v[0], v[1])
 
                 elif (
                     get_attack_category(self.prm["attack"]) == "node"
                     and v not in self.protected
                 ):
-                    self.S2VGraph.graph_.remove_node(v)
+                    self.gnn_graph.nx_graph_.remove_node(v)
 
             else:
                 print(

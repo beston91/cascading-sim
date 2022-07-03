@@ -1,6 +1,7 @@
 import datetime
 import traceback
 from abc import ABC
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -9,6 +10,7 @@ import wandb
 
 from relnet.agent.base_agent import Agent
 from relnet.evaluation.file_paths import FilePaths
+from relnet.environment.graph_edge_env import GraphEdgeEnv
 
 
 class PyTorchAgent(Agent, ABC):
@@ -46,12 +48,12 @@ class PyTorchAgent(Agent, ABC):
     def setup_graphs(self, train_g_list, validation_g_list):
         self.train_g_list = train_g_list
         self.validation_g_list = validation_g_list
-        self.train_initial_obj_values = self.environment.get_objective_function_values(
-            self.train_g_list
-        )
-        self.validation_initial_obj_values = self.environment.get_objective_function_values(
-            self.validation_g_list
-        )
+        # self.train_initial_obj_values = self.environment.get_objective_function_values(
+        #     self.train_g_list
+        # )
+        # self.validation_initial_obj_values = self.environment.get_objective_function_values(
+        #     self.validation_g_list
+        # )
 
     def setup_sample_indexes(self, dataset_size):
         self.sample_indexes = list(range(dataset_size))
@@ -116,46 +118,17 @@ class PyTorchAgent(Agent, ABC):
                     self.save_model_checkpoints()
 
     def log_validation_loss(self, step, make_action_kwargs=None):
-        performance = self.eval(
+
+        max_improvement, performance = self.eval(
             self.validation_g_list,
-            self.validation_initial_obj_values,
+            None,
             validation=True,
             make_action_kwargs=make_action_kwargs,
         )
 
         # max_improvement = self.environment.objective_function.upper_limit
-        max_improvement = 1
-        validation_loss = max_improvement - performance
+        validation_loss = (max_improvement - performance)/max_improvement
         wandb.log({"validation_loss": validation_loss})
-        if self.log_tf_summaries:
-            from tensorflow import Summary
-
-            validation_summary = Summary(
-                value=[
-                    Summary.Value(tag="validation_loss", simple_value=validation_loss)
-                ]
-            )
-
-            self.file_writer.add_summary(validation_summary, step)
-            try:
-                self.file_writer.flush()
-            except BaseException:
-                if self.logger is not None:
-                    self.logger.warn(
-                        "caught an exception when trying to flush TF data."
-                    )
-                    self.logger.warn(traceback.format_exc())
-
-        if self.hist_out is not None:
-            self.hist_out.write("%d,%.6f\n" % (step, performance))
-            try:
-                self.hist_out.flush()
-            except BaseException:
-                if self.logger is not None:
-                    self.logger.warn(
-                        "caught an exception when trying to flush evaluation history."
-                    )
-                    self.logger.warn(traceback.format_exc())
 
         return validation_loss
 

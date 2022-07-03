@@ -14,7 +14,7 @@ class Diffusion(Simulation):
     """
     Simulates the propagation of a virus using either the SIS or SIR model :cite:`kermack1927contribution`.
 
-    :param graph: contact network
+    :param gnn_graph: contact network
     :param model: a string to set the model type (i.e., SIS or SIR)
     :param runs: an integer number of times to run the simulation
     :param steps: an integer number of steps to run a single simulation
@@ -26,7 +26,7 @@ class Diffusion(Simulation):
 
     def __init__(
         self,
-        graph,
+        gnn_graph,
         model="SIS",
         runs=10,
         steps=5000,
@@ -35,7 +35,7 @@ class Diffusion(Simulation):
         c_approx=1,
         **kwargs
     ):
-        super().__init__(graph, runs, steps, **kwargs)
+        super().__init__(gnn_graph, runs, steps, **kwargs)
 
         self.prm.update(
             {
@@ -71,7 +71,7 @@ class Diffusion(Simulation):
         """
 
         return round(
-            spectral_radius(self.S2VGraph.graph) * self.prm["b"] / self.prm["d"], 2
+            spectral_radius(self.gnn_graph.nx_graph) * self.prm["b"] / self.prm["d"], 2
         )
 
     def reset_simulation(self):
@@ -79,14 +79,14 @@ class Diffusion(Simulation):
         Resets the simulation between each run
         """
 
-        self.S2VGraph.graph = self.S2VGraph.graph_og.copy()
+        self.gnn_graph.nx_graph = self.gnn_graph.nx_graph_og.copy()
         self.vaccinated = set()
         self.sim_info = defaultdict()
 
         self.infected = set(
             np.random.choice(
-                list(self.S2VGraph.graph.nodes),
-                size=int(self.prm["c_approx"] * len(self.S2VGraph.graph)),
+                list(self.gnn_graph.nx_graph.nodes),
+                size=int(self.prm["c_approx"] * len(self.gnn_graph.nx_graph)),
                 replace=False,
             ).tolist()
         )
@@ -97,7 +97,7 @@ class Diffusion(Simulation):
             if get_attack_category(self.prm["method"]) == "node":
                 self.vaccinated = set(
                     run_attack_method(
-                        self.S2VGraph.graph,
+                        self.gnn_graph.nx_graph,
                         self.prm["method"],
                         self.prm["k"],
                         seed=self.prm["seed"],
@@ -107,12 +107,12 @@ class Diffusion(Simulation):
 
             elif get_attack_category(self.prm["method"]) == "edge":
                 edge_info = run_attack_method(
-                    self.S2VGraph.graph,
+                    self.gnn_graph.nx_graph,
                     self.prm["method"],
                     self.prm["k"],
                     seed=self.prm["seed"],
                 )
-                self.S2VGraph.graph.remove_edges_from(edge_info)
+                self.gnn_graph.nx_graph.remove_edges_from(edge_info)
             else:
                 print(self.prm["method"], "not available")
 
@@ -121,14 +121,14 @@ class Diffusion(Simulation):
 
             if get_defense_category(self.prm["method"]) == "edge":
                 edge_info = run_defense_method(
-                    self.S2VGraph.graph,
+                    self.gnn_graph.nx_graph,
                     self.prm["method"],
                     self.prm["k"],
                     seed=self.prm["seed"],
                 )
 
-                self.S2VGraph.graph.add_edges_from(edge_info["added"])
-                self.S2VGraph.graph.remove_edges_from(edge_info["removed"])
+                self.gnn_graph.nx_graph.add_edges_from(edge_info["added"])
+                self.gnn_graph.nx_graph.remove_edges_from(edge_info["removed"])
             else:
                 print(self.prm["method"], "not available")
 
@@ -144,7 +144,7 @@ class Diffusion(Simulation):
 
         self.sim_info[step] = {
             "status": [
-                1 if n in self.infected else 0 for n in self.S2VGraph.graph.nodes
+                1 if n in self.infected else 0 for n in self.gnn_graph.nx_graph.nodes
             ],
             "failed": len(self.infected),
             "recovered": len(self.vaccinated),
@@ -164,7 +164,7 @@ class Diffusion(Simulation):
 
             infected_new = set()
             for node in self.infected:
-                nbrs = self.S2VGraph.graph.neighbors(node)
+                nbrs = self.gnn_graph.nx_graph.neighbors(node)
                 nbrs = set(nbrs).difference(self.infected).difference(self.vaccinated)
 
                 nbrs_infected = set(

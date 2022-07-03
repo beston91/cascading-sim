@@ -93,12 +93,8 @@ class NstepReplayMemCell(object):
         if not self.balance_sample or self.sub_list[1].count < batch_size:
             return self.sub_list[0].sample(batch_size)
 
-        list_st, list_at, list_rt, list_s_primes, list_term = self.sub_list[0].sample(
-            batch_size // 2
-        )
-        list_st2, list_at2, list_rt2, list_s_primes2, list_term2 = self.sub_list[
-            1
-        ].sample(batch_size - batch_size // 2)
+        list_st, list_at, list_rt, list_s_primes, list_term = self.sub_list[0].sample(batch_size // 2)
+        list_st2, list_at2, list_rt2, list_s_primes2, list_term2 = self.sub_list[1].sample(batch_size - batch_size // 2)
 
         return (
             list_st + list_st2,

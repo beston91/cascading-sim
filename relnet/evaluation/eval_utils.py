@@ -3,6 +3,7 @@ from itertools import product
 
 import numpy as np
 
+from relnet.environment.graph_edge_env import GraphEdgeEnv
 from relnet.utils.config_utils import local_seed
 
 
@@ -28,13 +29,15 @@ def generate_search_space(
     return search_space
 
 
-def get_values_for_g_list(
-    agent, g_list, initial_obj_values, validation, make_action_kwargs
-):
+def get_values_for_g_list(agent, g_list, initial_obj_values, validation, make_action_kwargs):
     if initial_obj_values is None:
-        obj_values = agent.environment.get_objective_function_values(g_list)
+        eval_nets = [deepcopy(g) for g in g_list]
+        obj_values = []
+        for eval_net in eval_nets:
+            obj_values.append(GraphEdgeEnv.simulate_to_failure(eval_net))
     else:
         obj_values = initial_obj_values
+
     agent.environment.setup(g_list, obj_values, training=False)
 
     t = 0
@@ -45,8 +48,8 @@ def get_values_for_g_list(
         list_at = agent.make_actions(t, **action_kwargs)
         # print(f"at step {t} agent picked actions {list_at}")
 
-        if not validation:
-            agent.environment.objective_function_kwargs["random_seed"] += 1
+        # if not validation:
+        #     agent.environment.objective_function_kwargs["random_seed"] += 1
 
         agent.environment.step(list_at)
         t += 1
@@ -55,6 +58,7 @@ def get_values_for_g_list(
 
 
 def eval_on_dataset(initial_objective_function_values, final_objective_function_values):
+    improvement = final_objective_function_values - initial_objective_function_values
     return np.mean(final_objective_function_values - initial_objective_function_values)
 
 

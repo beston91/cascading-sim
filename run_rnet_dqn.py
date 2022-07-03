@@ -39,10 +39,16 @@ def get_file_paths():
 
 
 if __name__ == "__main__":
+    from tqdm import tqdm
+    from functools import partialmethod
+
+    tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)
+
     NUM_TRAINING_STEPS = 1000
     NUM_TRAIN_GRAPHS = 100
     NUM_VALIDATION_GRAPHS = 20
     NUM_TEST_GRAPHS = 20
+    CAPACITY_BUDGET = 0.4
 
     gen_params = get_gen_params()
     file_paths = get_file_paths()
@@ -69,9 +75,8 @@ if __name__ == "__main__":
     validation_graphs = gen.generate_many(gen_params, validation_graph_seeds)
     test_graphs = gen.generate_many(gen_params, test_graph_seeds)
 
-    EDGE_PERCENTAGE = 2.5
     obj_fun_kwargs = {"random_seed": 42, "num_mc_sims": gen_params["n"] * 2}
-    targ_env = GraphEdgeEnv(critical_fraction_random, obj_fun_kwargs, EDGE_PERCENTAGE)
+    targ_env = GraphEdgeEnv(critical_fraction_random, obj_fun_kwargs, CAPACITY_BUDGET)
 
     agent = RNetDQNAgent(targ_env)
     agent.setup(options, agent.get_default_hyperparameters())

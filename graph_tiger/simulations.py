@@ -15,7 +15,6 @@ from matplotlib.colors import LinearSegmentedColormap
 from scipy.interpolate import interp1d
 from tqdm import tqdm
 
-from graph_tiger.graph_state import S2VGraph
 from graph_tiger.utils import curved_edges, get_sparse_graph
 
 
@@ -24,16 +23,16 @@ class Simulation:
     The parent class for all simulation classes i.e., attack, defense, cascading failure and diffusion models.
     Provides a shared set of functions, largely for network visualization and plotting of results
 
-    :param graph: undirected NetworkX graph
+    :param gnn_graph: undirected NetworkX graph
     :param runs: number of times to run the simulation
     :param steps: number of time steps to run each simulation
     :param kwargs: optional parameters to change visualization settings
     """
 
-    def __init__(self, graph, runs, steps, **kwargs):
+    def __init__(self, gnn_graph, runs, steps, **kwargs):
         # TODO: efficiency improvement--store edge and node difference rather than whole graph twice
-        self.graph_og = graph.copy()
-        self.S2VGraph = S2VGraph(graph)
+        # self.graph_og = graph.copy()
+        self.gnn_graph = gnn_graph
 
         self.prm = {
             "runs": runs,
@@ -49,7 +48,7 @@ class Simulation:
         }
 
         self.sim_info = defaultdict()
-        self.sparse_graph = get_sparse_graph(self.S2VGraph.graph)
+        self.sparse_graph = get_sparse_graph(self.gnn_graph.nx_graph)
 
         if self.prm["seed"] is not None:
             random.seed(self.prm["seed"])
@@ -77,10 +76,10 @@ class Simulation:
 
         node_pos = {
             idx: v["pos"]
-            for idx, (k, v) in enumerate(dict(self.S2VGraph.graph.nodes).items())
+            for idx, (k, v) in enumerate(dict(self.gnn_graph.nx_graph.nodes).items())
             if "pos" in v
         }  # check graph for coords
-        node_pos = node_pos if len(node_pos) == len(self.S2VGraph.graph) else None
+        node_pos = node_pos if len(node_pos) == len(self.gnn_graph.nx_graph) else None
 
         # node positions
         if self.prm["node_style"] == "force_atlas" and node_pos is None:
@@ -91,11 +90,11 @@ class Simulation:
                 verbose=False,
             )
             node_pos = force.forceatlas2_networkx_layout(
-                self.S2VGraph.graph, pos=None, iterations=self.prm["fa_iter"]
+                self.gnn_graph.nx_graph, pos=None, iterations=self.prm["fa_iter"]
             )
 
         elif node_pos is None:
-            node_pos = nx.spectral_layout(self.S2VGraph.graph)
+            node_pos = nx.spectral_layout(self.gnn_graph.nx_graph)
 
         # edge positions
         if self.prm["edge_style"] == "bundled":
@@ -104,7 +103,7 @@ class Simulation:
                 .rename_axis("name")
                 .reset_index()
             )
-            edge_pos = hammer_bundle(pos, nx.to_pandas_edgelist(self.S2VGraph.graph))
+            edge_pos = hammer_bundle(pos, nx.to_pandas_edgelist(self.gnn_graph.nx_graph))
 
         return node_pos, edge_pos
 
@@ -114,7 +113,7 @@ class Simulation:
 
         :param results: a list of floats representing each simulation output
         """
-        results_norm = [r / len(self.S2VGraph.graph) for r in results]
+        results_norm = [r / len(self.gnn_graph.nx_graph) for r in results]
 
         plt.figure(figsize=(6.4, 4.8), dpi=80)
 
@@ -283,7 +282,7 @@ class Simulation:
         if self.prm["edge_style"] == "curved":
             plt.gca().add_collection(
                 LineCollection(
-                    curved_edges(self.S2VGraph.graph, self.node_pos),
+                    curved_edges(self.gnn_graph.nx_graph, self.node_pos),
                     linewidth=ew,
                     color=ec,
                 )
@@ -294,11 +293,11 @@ class Simulation:
 
         else:
             nx.draw_networkx_edges(
-                self.S2VGraph.graph, pos=self.node_pos, width=ew, edge_color=ec
+                self.gnn_graph.nx_graph, pos=self.node_pos, width=ew, edge_color=ec
             )
 
         nodes = nx.draw_networkx_nodes(
-            self.S2VGraph.graph,
+            self.gnn_graph.nx_graph,
             pos=self.node_pos,
             cmap=cmap,
             vmin=0,
@@ -383,7 +382,7 @@ class Simulation:
 
         :return: a list containing the average value at each 'step' of the simulation.
         """
-        print("Running simulation {} times".format(self.prm["runs"]))
+        # print("Running simulation {} times".format(self.prm["runs"]))
 
         sim_results = list(range(self.prm["runs"]))
         for r in tqdm(range(self.prm["runs"]), colour="green"):

@@ -1,4 +1,3 @@
-import math
 import warnings
 from copy import deepcopy
 
@@ -9,14 +8,17 @@ import xxhash
 budget_eps = 1e-5
 
 
-class S2VGraph(object):
+class GNNGraph(object):
     def __init__(self, g):
-        self.banned_actions = None
-        self.graph = g
+        self.total_capacity = None
+        self.capacity_og = None
         self.num_nodes = g.number_of_nodes()
         self.node_labels = np.arange(self.num_nodes)
-        self.loads = np.arange(self.num_nodes)
         self.all_nodes_set = set(self.node_labels)
+        self.nx_graph = g
+        self.banned_actions = None
+        self.load = None
+        self.capacity = None
 
         x, y = zip(*g.edges())
         self.num_edges = len(x)
@@ -34,68 +36,27 @@ class S2VGraph(object):
         self.first_node = None
         self.dynamic_edges = None
 
+        self.reset()
+
+    def reset(self):
+        self.capacity_og = nx.betweenness_centrality(
+            self.nx_graph,
+            k=int(1.0 * len(self.nx_graph)),  # TODO: add c_approx
+            normalized=True,
+            endpoints=True,
+        )
+        self.load = self.capacity_og
+        self.capacity = self.capacity_og.copy()
+        # self.capacity.update(
+        #     (x, y * (1.0 + 0.1)) for x, y in self.capacity.items()  # TODO: add self.prm["r"]
+        # )
+        self.total_capacity = sum(self.capacity.values())
+
     def add_edge(self, first_node, second_node):
         nx_graph = self.to_networkx()
         nx_graph.add_edge(first_node, second_node)
-        s2v_graph = S2VGraph(nx_graph)
+        s2v_graph = GNNGraph(nx_graph)
         return s2v_graph, 1
-
-    def add_edge_dynamically(self, first_node, second_node):
-        self.dynamic_edges.append((first_node, second_node))
-        self.node_degrees[first_node] += 1
-        self.node_degrees[second_node] += 1
-        return 1
-
-    def populate_banned_actions(self, budget=None):
-        if budget is not None:
-            if budget < budget_eps:
-                self.banned_actions = self.all_nodes_set
-                return
-
-        if self.first_node is None:
-            self.banned_actions = self.get_invalid_first_nodes(budget)
-        else:
-            self.banned_actions = self.get_invalid_edge_ends(self.first_node, budget)
-
-    def get_invalid_first_nodes(self, budget=None):
-        return set(
-            [
-                node_id
-                for node_id in self.node_labels
-                if self.node_degrees[node_id] == (self.num_nodes - 1)
-            ]
-        )
-
-    def get_invalid_edge_ends(self, query_node, budget=None):
-        results = set()
-        results.add(query_node)
-
-        existing_edges = self.edge_pairs.reshape(-1, 2)
-        existing_left = existing_edges[existing_edges[:, 0] == query_node]
-        results.update(np.ravel(existing_left[:, 1]))
-
-        existing_right = existing_edges[existing_edges[:, 1] == query_node]
-        results.update(np.ravel(existing_right[:, 0]))
-
-        if self.dynamic_edges is not None:
-            dynamic_left = [
-                entry[0] for entry in self.dynamic_edges if entry[0] == query_node
-            ]
-            results.update(dynamic_left)
-            dynamic_right = [
-                entry[1] for entry in self.dynamic_edges if entry[1] == query_node
-            ]
-            results.update(dynamic_right)
-        return results
-
-    def init_dynamic_edges(self):
-        self.dynamic_edges = []
-
-    def apply_dynamic_edges(self):
-        nx_graph = self.to_networkx()
-        for edge in self.dynamic_edges:
-            nx_graph.add_edge(edge[0], edge[1])
-        return S2VGraph(nx_graph)
 
     def to_networkx(self):
         edges = self.convert_edges()
@@ -148,6 +109,9 @@ class S2VGraph(object):
     def __repr__(self):
         gh = get_graph_hash(self, size=32, include_first=True)
         return f"Graph State with hash {gh}"
+
+    def add_capacity_to_node(self, node, add_increment):
+        self.capacity[node] += add_increment
 
 
 def get_graph_hash(g, size=32, include_first=False):

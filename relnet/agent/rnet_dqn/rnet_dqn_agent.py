@@ -2,12 +2,13 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+import wandb
 from torch.autograd import Variable
 from tqdm import tqdm
 
 from relnet.agent.pytorch_agent import PyTorchAgent
 from relnet.agent.rnet_dqn.nstep_replay_mem import NstepReplayMem
-from relnet.agent.rnet_dqn.q_net import NStepQNet, greedy_actions
+from relnet.agent.rnet_dqn.q_net import NStepQNet, QNet, greedy_actions
 from relnet.utils.config_utils import get_device_placement
 
 
@@ -81,15 +82,16 @@ class RNetDQNAgent(PyTorchAgent):
             if len(cleaned_sp):
                 _, _, banned = zip(*cleaned_sp)
                 _, q_t_plus_1, prefix_sum_prime = self.old_net(
-                    (cur_time + 1) % 2, cleaned_sp, None
+                    cleaned_sp, None
                 )
-                _, q_rhs = greedy_actions(q_t_plus_1, prefix_sum_prime, banned)
+                _, q_rhs = greedy_actions(q_t_plus_1, prefix_sum_prime, None)
                 list_target[nonterms] = q_rhs
 
             list_target = Variable(list_target.view(-1, 1))
-            _, q_sa, _ = self.net(cur_time % 2, list_st, list_at)
+            _, q_sa, _ = self.net(list_st, list_at)
 
             loss = F.mse_loss(q_sa, list_target)
+            wandb.log({"training_loss": loss})
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -100,8 +102,8 @@ class RNetDQNAgent(PyTorchAgent):
                 break
 
     def setup_nets(self):
-        self.net = NStepQNet(self.hyperparams, num_steps=2)
-        self.old_net = NStepQNet(self.hyperparams, num_steps=2)
+        self.net = QNet(self.hyperparams, None)
+        self.old_net = QNet(self.hyperparams, None)
         if get_device_placement() == "GPU":
             self.net = self.net.cuda()
             self.old_net = self.old_net.cuda()
@@ -137,46 +139,34 @@ class RNetDQNAgent(PyTorchAgent):
         if greedy:
             return self.do_greedy_actions(t)
         else:
-            if t % 2 == 0:
-                self.eps = self.eps_end + max(
-                    0.0,
-                    (self.eps_start - self.eps_end)
-                    * (self.eps_step - max(0.0, self.step))
-                    / self.eps_step,
-                )
-                if self.local_random.random() < self.eps:
-                    (
-                        exploration_actions_t0,
-                        exploration_actions_t1,
-                    ) = self.environment.exploratory_actions(
-                        self.agent_exploration_policy
-                    )
-                    self.next_exploration_actions = exploration_actions_t1
-                    return exploration_actions_t0
-                else:
-                    greedy_acts = self.do_greedy_actions(t)
-                    self.next_exploration_actions = None
-                    return greedy_acts
+            self.eps = self.eps_end + max(0.0, (self.eps_start - self.eps_end) * (
+                        self.eps_step - max(0.0, self.step)) / self.eps_step, )
+            if self.local_random.random() < self.eps:
+                exploration_actions = self.environment.exploratory_actions(
+                    self.agent_exploration_policy)
+                return exploration_actions
             else:
-                if self.next_exploration_actions is not None:
-                    return self.next_exploration_actions
-                else:
-                    return self.do_greedy_actions(t)
+                return self.do_greedy_actions(t)
 
     def do_greedy_actions(self, time_t):
         cur_state = self.environment.get_state_ref()
-        actions, _, _ = self.net(time_t % 2, cur_state, None, greedy_acts=True)
+        actions, _, _ = self.net(cur_state, None, greedy_acts=True)
         actions = list(actions.cpu().numpy())
         return actions
 
     def agent_exploration_policy(self, i):
         return self.pick_random_actions(i)
 
+    def pick_random_actions(self, i):
+        g = self.environment.g_list[i]
+        valid_actions = g.all_nodes_set
+        return self.local_random.choice(tuple(valid_actions))
+
     def run_simulation(self):
         selected_idx = self.advance_pos_and_sample_indices()
         self.environment.setup(
             [self.train_g_list[idx] for idx in selected_idx],
-            [self.train_initial_obj_values[idx] for idx in selected_idx],
+            None,
             training=True,
         )
         self.post_env_setup()
@@ -252,4 +242,3 @@ class RNetDQNAgent(PyTorchAgent):
             "eps_step_denominator": 10,
         }
         return hyperparams
-

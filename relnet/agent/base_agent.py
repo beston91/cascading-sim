@@ -23,15 +23,13 @@ class Agent(ABC):
     def train(self, train_g_list, validation_g_list, max_steps, **kwargs):
         pass
 
-    def eval(
-        self, g_list, initial_obj_values=None, validation=False, make_action_kwargs=None
-    ):
+    def eval(self, g_list, initial_obj_values=None, validation=False, make_action_kwargs=None):
 
         eval_nets = [deepcopy(g) for g in g_list]
         initial_obj_values, final_obj_values = get_values_for_g_list(
             self, eval_nets, initial_obj_values, validation, make_action_kwargs
         )
-        return eval_on_dataset(initial_obj_values, final_obj_values)
+        return np.mean(np.absolute(initial_obj_values)), eval_on_dataset(initial_obj_values, final_obj_values)
 
     @abstractmethod
     def make_actions(self, t, **kwargs):
@@ -61,38 +59,9 @@ class Agent(ABC):
     def finalize(self):
         pass
 
+    @abstractmethod
     def pick_random_actions(self, i):
-        g = self.environment.g_list[i]
-        banned_first_nodes = g.banned_actions
-
-        first_valid_acts = self.environment.get_valid_actions(g, banned_first_nodes)
-        if len(first_valid_acts) == 0:
-            return -1, -1
-
-        first_node = self.local_random.choice(tuple(first_valid_acts))
-        rem_budget = self.environment.get_remaining_budget(i)
-        banned_second_nodes = g.get_invalid_edge_ends(first_node, rem_budget)
-        second_valid_acts = self.environment.get_valid_actions(g, banned_second_nodes)
-
-        if second_valid_acts is None or len(second_valid_acts) == 0:
-            if self.logger is not None:
-                self.logger.error(
-                    f"caught an illegal state: allowed first actions disagree with second"
-                )
-                self.logger.error(f"first node valid acts: {first_valid_acts}")
-                self.logger.error(f"second node valid acts: {second_valid_acts}")
-                self.logger.error(f"the remaining budget: {rem_budget}")
-
-                self.logger.error(f"first_node selection: {g.first_node}")
-
-            return -1, -1
-        else:
-            second_node = self.local_random.choice(tuple(second_valid_acts))
-            return first_node, second_node
-
-    @staticmethod
-    def say_hello():
-        print("Hello World!")
+        pass
 
     def set_random_seeds(self, random_seed):
         self.random_seed = random_seed

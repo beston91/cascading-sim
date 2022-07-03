@@ -470,7 +470,7 @@ class Defense(Simulation):
     """
     This class simulates a variety of defense techniques on an undirected NetworkX graph
 
-    :param graph: an undirected NetworkX graph
+    :param gnn_graph: an undirected NetworkX graph
     :param runs: an integer number of times to run the simulation
     :param steps: an integer number of steps to run a single simulation
     :param attack: a string representing the attack strategy to run
@@ -480,10 +480,10 @@ class Defense(Simulation):
     """
 
     def __init__(
-        self, graph, runs=10, steps=50, attack="id_node", defense=None, k_d=0, **kwargs
+        self, gnn_graph, runs=10, steps=50, attack="id_node", defense=None, k_d=0, **kwargs
     ):
-        super().__init__(graph, runs, steps, **kwargs)
-        self.S2VGraph.graph = graph
+        super().__init__(gnn_graph, runs, steps, **kwargs)
+        self.gnn_graph.nx_graph = gnn_graph
 
         self.prm.update(
             {
@@ -514,7 +514,7 @@ class Defense(Simulation):
         Resets the simulation between each run
         """
 
-        self.S2VGraph.graph_ = self.S2VGraph.graph.copy()
+        self.gnn_graph.nx_graph_ = self.gnn_graph.nx_graph.copy()
         self.attacked = []
         self.protected = []
         self.connectivity = []
@@ -522,7 +522,7 @@ class Defense(Simulation):
         # attacked nodes or edges
         if self.prm["attack"] is not None and self.prm["k_a"] > 0:
             self.attacked = run_attack_method(
-                self.S2VGraph.graph_,
+                self.gnn_graph.nx_graph_,
                 self.prm["attack"],
                 self.prm["k_a"],
                 approx=self.prm["attack_approx"],
@@ -530,7 +530,7 @@ class Defense(Simulation):
             )
 
             if get_attack_category(self.prm["attack"]) == "edge":
-                self.S2VGraph.graph_.remove_nodes_from(self.attacked)
+                self.gnn_graph.nx_graph_.remove_nodes_from(self.attacked)
 
         elif self.prm["attack"] is not None:
             print(self.prm["attack"], "not available or k <= 0")
@@ -540,7 +540,7 @@ class Defense(Simulation):
 
             if get_defense_category(self.prm["defense"]) == "node":
                 self.protected = run_defense_method(
-                    self.S2VGraph.graph_,
+                    self.gnn_graph.nx_graph_,
                     self.prm["defense"],
                     self.prm["steps"],
                     seed=self.prm["seed"],
@@ -548,7 +548,7 @@ class Defense(Simulation):
 
             elif get_defense_category(self.prm["defense"]) == "edge":
                 self.protected = run_defense_method(
-                    self.S2VGraph.graph_,
+                    self.gnn_graph.nx_graph_,
                     self.prm["defense"],
                     self.prm["steps"],
                     seed=self.prm["seed"],
@@ -561,9 +561,9 @@ class Defense(Simulation):
         if get_attack_category(self.prm["attack"]) == "node":
             if get_defense_category(self.prm["defense"]) == "node":
                 diff = set(self.protected) - set(self.attacked)
-                self.S2VGraph.graph_.remove_nodes_from(diff)
+                self.gnn_graph.nx_graph_.remove_nodes_from(diff)
             else:
-                self.S2VGraph.graph_.remove_nodes_from(self.attacked)
+                self.gnn_graph.nx_graph_.remove_nodes_from(self.attacked)
 
     def track_simulation(self, step):
         """
@@ -572,15 +572,15 @@ class Defense(Simulation):
          :param step: current simulation iteration
          """
 
-        measure = run_measure(self.S2VGraph.graph_, self.prm["robust_measure"])
+        measure = run_measure(self.gnn_graph.nx_graph_, self.prm["robust_measure"])
 
-        ccs = list(nx.connected_components(self.S2VGraph.graph_))
+        ccs = list(nx.connected_components(self.gnn_graph.nx_graph_))
         ccs.sort(key=len, reverse=True)
 
         m = interp1d([0, len(ccs)], [0.15, 1])
 
         status = {}
-        for n in self.S2VGraph.graph:
+        for n in self.gnn_graph.nx_graph:
             for idx, cc in enumerate(ccs):
                 if n in self.attacked[0:step]:
                     status[n] = 1
@@ -593,7 +593,7 @@ class Defense(Simulation):
 
         self.sim_info[step] = {
             "status": list(status.values()),
-            "failed": len(self.S2VGraph.graph_) - len(max(ccs)),
+            "failed": len(self.gnn_graph.nx_graph_) - len(max(ccs)),
             "measure": measure,
             "protected": self.protected,
             "edges_added": self.protected["added"][0:step]
@@ -618,11 +618,11 @@ class Defense(Simulation):
                 self.track_simulation(step)
 
                 u, v = self.protected["added"][step]
-                self.S2VGraph.graph_.add_edge(u, v)
+                self.gnn_graph.nx_graph_.add_edge(u, v)
 
                 if "removed" in self.protected[step]:
                     u, v = self.protected["removed"][step]
-                    self.S2VGraph.graph.remove_edge(u, v)
+                    self.gnn_graph.nx_graph.remove_edge(u, v)
 
             else:
                 self.track_simulation(step)

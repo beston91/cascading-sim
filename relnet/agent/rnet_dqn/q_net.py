@@ -83,9 +83,9 @@ class QNet(nn.Module):
         self.num_edge_feats = 0
 
         if s2v_module is None:
-            self.s2v = GCN(in_channels=5, hidden_channels=1, out_channels=64)
+            self.gnn = GCN(in_channels=2, hidden_channels=32, out_channels=64)
         else:
-            self.s2v = s2v_module
+            self.gnn = s2v_module
 
     def add_offset(self, actions, v_p):
         prefix_sum = v_p.data.cpu().numpy()
@@ -139,7 +139,7 @@ class QNet(nn.Module):
         return node_feat, torch.LongTensor(prefix_sum)
 
     def forward(self, states, actions, greedy_acts=False):
-        batch_graph, _, _= zip(*states)
+        batch_graph = states
 
         node_feat, prefix_sum = self.prepare_node_features(batch_graph, None)
         # if get_device_placement() == "GPU":
@@ -150,15 +150,15 @@ class QNet(nn.Module):
         #     batch_graph, node_feat, edge_feat, pool_global=True)
         pyg_graphs = []
         for graph in batch_graph:
-            nx_graph = graph.to_networkx()
+            nx_graph = graph.nx_graph
+            picked_nodes = graph.picked_nodes
+            node_degrees = graph.node_degrees
             for n in np.arange(len(nx_graph)):
-                nx_graph.nodes[n]["x"] = np.float32(
-                    np.random.uniform(low=0.5, high=1.0, size=(5,))
-                )
+                nx_graph.nodes[n]["x"] = [np.float32(graph.capacity_og[n]), np.float32(graph.capacity[n])]
             pyg_graph = from_networkx(nx_graph)
             pyg_graphs.append(pyg_graph)
         batch = Batch.from_data_list(pyg_graphs)
-        embed, graph_embed = self.s2v(
+        embed, graph_embed = self.gnn(
             batch.x, batch.edge_index, batch.edge_weight, batch.batch
         )
         # embed, graph_embed, prefix_sum = self.run_s2v_embedding(batch_graph, prefix_sum)
@@ -187,7 +187,7 @@ class NStepQNet(nn.Module):
         list_mod = [QNet(hyperparams, None)]
 
         for i in range(1, num_steps):
-            list_mod.append(QNet(hyperparams, list_mod[0].s2v))
+            list_mod.append(QNet(hyperparams, list_mod[0].gnn))
 
         self.list_mod = nn.ModuleList(list_mod)
         self.num_steps = num_steps

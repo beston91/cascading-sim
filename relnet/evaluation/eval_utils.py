@@ -34,7 +34,8 @@ def get_values_for_g_list(agent, g_list, initial_obj_values, validation, make_ac
         eval_nets = [deepcopy(g) for g in g_list]
         obj_values = []
         for eval_net in eval_nets:
-            obj_values.append(GraphEdgeEnv.simulate_to_failure(eval_net))
+            eval_net.reset(agent.environment.capacity_budget_percent, validate=True)
+            obj_values.append(GraphEdgeEnv.simulate_to_failure(eval_net, show_graph=False))
     else:
         obj_values = initial_obj_values
 
@@ -51,14 +52,13 @@ def get_values_for_g_list(agent, g_list, initial_obj_values, validation, make_ac
         # if not validation:
         #     agent.environment.objective_function_kwargs["random_seed"] += 1
 
-        agent.environment.step(list_at)
+        agent.environment.step(list_at, show_graph=False)
         t += 1
     final_obj_values = agent.environment.get_final_values()
     return obj_values, final_obj_values
 
 
 def eval_on_dataset(initial_objective_function_values, final_objective_function_values):
-    improvement = final_objective_function_values - initial_objective_function_values
     return np.mean(final_objective_function_values - initial_objective_function_values)
 
 

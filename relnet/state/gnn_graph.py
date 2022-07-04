@@ -10,6 +10,7 @@ budget_eps = 1e-5
 
 class GNNGraph(object):
     def __init__(self, g):
+        self.picked_nodes = None
         self.total_capacity = None
         self.capacity_og = None
         self.num_nodes = g.number_of_nodes()
@@ -27,18 +28,12 @@ class GNNGraph(object):
         self.edge_pairs[:, 1] = y
         self.edge_pairs = np.ravel(self.edge_pairs)
 
-        self.node_degrees = np.array(
-            [
-                deg
-                for (node, deg) in sorted(g.degree(), key=lambda deg_pair: deg_pair[0])
-            ]
-        )
+        self.node_degrees = np.array([deg for (node, deg) in sorted(g.degree(), key=lambda deg_pair: deg_pair[0])])
         self.first_node = None
-        self.dynamic_edges = None
 
         self.reset()
 
-    def reset(self):
+    def reset(self, capacity_budget=None, validate=False):
         self.capacity_og = nx.betweenness_centrality(
             self.nx_graph,
             k=int(1.0 * len(self.nx_graph)),  # TODO: add c_approx
@@ -47,10 +42,19 @@ class GNNGraph(object):
         )
         self.load = self.capacity_og
         self.capacity = self.capacity_og.copy()
-        # self.capacity.update(
-        #     (x, y * (1.0 + 0.1)) for x, y in self.capacity.items()  # TODO: add self.prm["r"]
-        # )
+
         self.total_capacity = sum(self.capacity.values())
+        self.picked_nodes = np.zeros(self.num_nodes, dtype=int)
+
+        # All have some extra capacity to begin with
+        self.capacity.update(
+            (x, y * (1.0 + 0.25)) for x, y in self.capacity.items()  # TODO: add self.prm["r"]
+        )
+        if validate:
+            # Evenly distribute capacity budget
+            self.capacity.update(
+                (x, y + (self.total_capacity * capacity_budget)/self.num_nodes) for x, y in self.capacity.items()  # TODO: add self.prm["r"]
+            )
 
     def add_edge(self, first_node, second_node):
         nx_graph = self.to_networkx()

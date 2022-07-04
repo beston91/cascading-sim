@@ -7,7 +7,7 @@ from graph_tiger.cascading import Cascading
 
 
 class GraphEdgeEnv(object):
-    def __init__(self, objective_function, objective_function_kwargs, capacity_budget_percent):
+    def __init__(self, capacity_budget_percent):
         self.final_objective_values = None
         self.increments = None
         self.logger_instance = None
@@ -19,16 +19,10 @@ class GraphEdgeEnv(object):
         self.n_steps = None
         self.g_list = None
         self.capacity_budgets = None
-        self.objective_function = objective_function
-        self.original_objective_function_kwargs = objective_function_kwargs
-        self.objective_function_kwargs = deepcopy(
-            self.original_objective_function_kwargs
-        )
         # Capacity budget is a percentage
         self.capacity_budget_percent = capacity_budget_percent
         # Add increment is a fraction of the capacity_budget
 
-        self.num_mdp_substeps = 2
         self.reward_eps = 1e-4
         self.reward_scale_multiplier = 100
 
@@ -47,17 +41,10 @@ class GraphEdgeEnv(object):
             g.reset()
             g_budget = g.total_capacity * self.capacity_budget_percent
             self.capacity_budgets[i] = g_budget
-            self.increments[i] = g_budget * 0.1
+            self.increments[i] = g_budget * (1 / 10)
 
         self.training = training
-
         self.final_objective_values = np.zeros(len(self.g_list), dtype=np.float)
-
-        # self.objective_function_values = np.zeros(len(self.g_list), dtype=np.float)
-        # self.objective_function_values = initial_objective_function_values
-        # self.objective_function_kwargs = deepcopy(
-        #     self.original_objective_function_kwargs
-        # )
         self.rewards = np.zeros(len(g_list), dtype=np.float)
 
         # if self.training:
@@ -70,15 +57,6 @@ class GraphEdgeEnv(object):
 
     def get_final_values(self):
         return self.final_objective_values
-    #
-    # def get_objective_function_value(self, s2v_graph):
-    #     obj_function_value = self.objective_function(
-    #         s2v_graph, **self.objective_function_kwargs
-    #     )
-    #     return obj_function_value
-    #
-    # def get_objective_function_values(self, s2v_graphs):
-    #     return np.array([self.get_objective_function_value(g) for g in s2v_graphs])
 
     def get_remaining_budget(self, i):
         return self.capacity_budgets[i] - self.used_capacity_budgets[i]
@@ -92,10 +70,11 @@ class GraphEdgeEnv(object):
     def apply_action(self, g, action, node, copy_state=False):
         # Every time a node is picked 1/10 of the original budget is assigned
         g.add_capacity_to_node(action, self.increments[node])
+        g.picked_nodes[action] += 1
         budget_used = self.increments[node]
         return g, budget_used
 
-    def step(self, actions):
+    def step(self, actions, show_graph=False):
         for i in range(len(self.g_list)):
             if not self.exhausted_budgets[i]:
                 if actions[i] == -1:
@@ -116,7 +95,9 @@ class GraphEdgeEnv(object):
 
                 if self.capacity_budgets[i] - self.used_capacity_budgets[i] <= 0:
                     # TODO: simulate cascade failure
-                    self.rewards[i] = self.simulate_to_failure(self.g_list[i])
+                    if show_graph:
+                        print("showing graph")
+                    self.rewards[i] = self.simulate_to_failure(self.g_list[i], show_graph)
                     self.final_objective_values[i] = self.rewards[i]
                     self.exhausted_budgets[i] = True
 
@@ -138,9 +119,7 @@ class GraphEdgeEnv(object):
         return np.all(self.exhausted_budgets)
 
     def get_state_ref(self):
-        cp_first = [g.first_node for g in self.g_list]
-        b_list = [g.banned_actions for g in self.g_list]
-        return zip(self.g_list, cp_first, b_list)
+        return self.g_list
 
     def clone_state(self, indices=None):
         if indices is None:
@@ -149,18 +128,14 @@ class GraphEdgeEnv(object):
             return list(zip(deepcopy(self.g_list), cp_first, b_list))
         else:
             cp_g_list = []
-            cp_first = []
-            b_list = []
 
             for i in indices:
                 cp_g_list.append(deepcopy(self.g_list[i]))
-                cp_first.append(deepcopy(self.g_list[i].first_node))
-                b_list.append(deepcopy(self.g_list[i].banned_actions))
 
-            return list(zip(cp_g_list, cp_first, b_list))
+            return list(cp_g_list)
 
     @staticmethod
-    def simulate_to_failure(gnn_graph):
+    def simulate_to_failure(gnn_graph, show_graph=False):
         params = {
             'runs': 1,
             'steps': 20,
@@ -170,7 +145,7 @@ class GraphEdgeEnv(object):
             'r': 0.2,
             'c_approx': 1.0,
 
-            'k_a': 5,
+            'k_a': 1,
             'attack': 'rb_node',
             'attack_approx': int(0.1 * gnn_graph.num_nodes),
 
@@ -179,7 +154,7 @@ class GraphEdgeEnv(object):
 
             'robust_measure': 'largest_connected_component',
 
-            'plot_transition': False,  # False turns off key simulation image "snapshots"
+            'plot_transition': show_graph,  # False turns off key simulation image "snapshots"
             'gif_animation': False,  # True creates a video of the simulation (MP4 file)
             'gif_snaps': False,  # True saves each frame of the simulation as an image
 
@@ -191,5 +166,5 @@ class GraphEdgeEnv(object):
         cascading = Cascading(gnn_graph, **params)
         results = cascading.run_simulation()
         # reward is the negative difference between starting robustness and ending robustness
-        reward = results[-1] - results[0]
+        reward = results[-1] / results[0]
         return reward

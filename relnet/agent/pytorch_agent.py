@@ -127,8 +127,9 @@ class PyTorchAgent(Agent, ABC):
         )
 
         # max_improvement = self.environment.objective_function.upper_limit
-        validation_loss = (max_improvement - performance)/max_improvement
+        validation_loss = max_improvement - performance
         wandb.log({"validation_loss": validation_loss})
+        wandb.log({"performance": performance})
 
         return validation_loss
 

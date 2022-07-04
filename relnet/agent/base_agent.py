@@ -29,7 +29,18 @@ class Agent(ABC):
         initial_obj_values, final_obj_values = get_values_for_g_list(
             self, eval_nets, initial_obj_values, validation, make_action_kwargs
         )
-        return np.mean(np.absolute(initial_obj_values)), eval_on_dataset(initial_obj_values, final_obj_values)
+        s = f"""
+        {'-' * 40}
+        # Before: {initial_obj_values}
+        # After: {final_obj_values}
+        {'-' * 40}
+        """
+        print(s)
+        return self.max_performance(initial_obj_values), eval_on_dataset(initial_obj_values, final_obj_values)
+
+    @staticmethod
+    def max_performance(initial_obj_values):
+        return np.mean(np.ones_like(initial_obj_values) - initial_obj_values)
 
     @abstractmethod
     def make_actions(self, t, **kwargs):

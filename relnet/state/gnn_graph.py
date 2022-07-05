@@ -10,8 +10,9 @@ budget_eps = 1e-5
 
 class GNNGraph(object):
     def __init__(self, g):
+        self.starting_capacity = None
         self.picked_nodes = None
-        self.total_capacity = None
+        self.total_capacity_og = None
         self.capacity_og = None
         self.num_nodes = g.number_of_nodes()
         self.node_labels = np.arange(self.num_nodes)
@@ -41,20 +42,19 @@ class GNNGraph(object):
             endpoints=True,
         )
         self.load = self.capacity_og
-        self.capacity = self.capacity_og.copy()
+        self.starting_capacity = self.capacity_og.copy()
 
-        self.total_capacity = sum(self.capacity.values())
+        self.total_capacity_og = sum(self.capacity_og.values())
         self.picked_nodes = np.zeros(self.num_nodes, dtype=int)
-
         # All have some extra capacity to begin with
-        self.capacity.update(
-            (x, y * (1.0 + 0.25)) for x, y in self.capacity.items()  # TODO: add self.prm["r"]
-        )
+        extra_capacity = 0.15
+        # If this is for validation, just apply the capacity budget proportional to original capacity
         if validate:
-            # Evenly distribute capacity budget
-            self.capacity.update(
-                (x, y + (self.total_capacity * capacity_budget)/self.num_nodes) for x, y in self.capacity.items()  # TODO: add self.prm["r"]
-            )
+            extra_capacity += capacity_budget
+        self.starting_capacity.update(
+            (x, y * (1.0 + extra_capacity)) for x, y in self.starting_capacity.items()  # TODO: add self.prm["r"]
+        )
+        self.capacity = self.starting_capacity.copy()
 
     def add_edge(self, first_node, second_node):
         nx_graph = self.to_networkx()

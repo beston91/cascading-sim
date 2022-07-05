@@ -39,9 +39,9 @@ class GraphEdgeEnv(object):
         for i in range(len(self.g_list)):
             g = g_list[i]
             g.reset()
-            g_budget = g.total_capacity * self.capacity_budget_percent
+            g_budget = g.total_capacity_og * self.capacity_budget_percent
             self.capacity_budgets[i] = g_budget
-            self.increments[i] = g_budget * (1 / (g.num_nodes * 2))
+            self.increments[i] = g_budget * (1 / (g.num_nodes * 4))
 
         self.training = training
         self.final_objective_values = np.zeros(len(self.g_list), dtype=np.float)

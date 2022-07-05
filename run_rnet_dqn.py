@@ -47,7 +47,7 @@ if __name__ == "__main__":
     NUM_TRAIN_GRAPHS = 100
     NUM_VALIDATION_GRAPHS = 20
     NUM_TEST_GRAPHS = 20
-    CAPACITY_BUDGET = 0.25
+    CAPACITY_BUDGET = 0.15
 
     gen_params = get_gen_params()
     file_paths = get_file_paths()

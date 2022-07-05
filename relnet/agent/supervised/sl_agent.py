@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
+from torch.optim.lr_scheduler import LambdaLR
 from tqdm import tqdm
 
 from relnet.agent.baseline.baseline_agent import BaselineAgent
@@ -41,6 +42,8 @@ class SLAgent(PyTorchAgent, BaselineAgent):
 
         pbar = tqdm(range(max_steps + 1), unit="steps", disable=None)
         optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)
+        lambda1 = lambda epoch: 0.95 ** epoch
+        scheduler = LambdaLR(optimizer, lr_lambda=lambda1)
         for self.step in pbar:
             self.logger.warn("starting validation loss check...")
             self.check_validation_loss(self.step, max_steps)
@@ -57,6 +60,7 @@ class SLAgent(PyTorchAgent, BaselineAgent):
             should_stop = self.check_stopping_condition(self.step, max_steps)
             if should_stop:
                 break
+            scheduler.step()
 
     def setup_net(self):
         self.net = SLNet(self.hyperparams, s2v_module=None)
@@ -115,4 +119,3 @@ class SLAgent(PyTorchAgent, BaselineAgent):
             "max_lv": 3,
         }
         return hyperparams
-

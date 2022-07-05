@@ -926,3 +926,121 @@ Bestons-MacBook-Pro.local 2022-07-05-01-16-18 - PID10079 saving model.
 Bestons-MacBook-Pro.local 2022-07-05-01-19-14 - PID10079 model validation loss:  0.7233 at step 200. 
 Bestons-MacBook-Pro.local 2022-07-05-01-19-14 - PID10079 rejoice! found a better validation loss at step 200.
 Bestons-MacBook-Pro.local 2022-07-05-01-19-14 - PID10079 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-01-22-19 - PID10079 model validation loss:  0.7817 at step 300. 
+Bestons-MacBook-Pro.local 2022-07-05-01-25-28 - PID10079 model validation loss:  0.8017 at step 400. 
+Bestons-MacBook-Pro.local 2022-07-05-01-28-45 - PID10079 model validation loss:  0.7250 at step 500. 
+Bestons-MacBook-Pro.local 2022-07-05-01-32-09 - PID10079 model validation loss:  0.7117 at step 600. 
+Bestons-MacBook-Pro.local 2022-07-05-01-32-09 - PID10079 rejoice! found a better validation loss at step 600.
+Bestons-MacBook-Pro.local 2022-07-05-01-32-09 - PID10079 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-01-35-40 - PID10079 model validation loss:  0.7267 at step 700. 
+Bestons-MacBook-Pro.local 2022-07-05-01-39-22 - PID10079 model validation loss:  0.6867 at step 800. 
+Bestons-MacBook-Pro.local 2022-07-05-01-39-22 - PID10079 rejoice! found a better validation loss at step 800.
+Bestons-MacBook-Pro.local 2022-07-05-01-39-22 - PID10079 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-01-43-13 - PID10079 model validation loss:  0.8350 at step 900. 
+Bestons-MacBook-Pro.local 2022-07-05-01-47-11 - PID10079 model validation loss:  0.6900 at step 1000. 
+Bestons-MacBook-Pro.local 2022-07-05-01-51-16 - PID10079 model validation loss:  0.7433 at step 1100. 
+Bestons-MacBook-Pro.local 2022-07-05-01-55-22 - PID10079 model validation loss:  0.7417 at step 1200. 
+Bestons-MacBook-Pro.local 2022-07-05-01-59-27 - PID10079 model validation loss:  0.7717 at step 1300. 
+Bestons-MacBook-Pro.local 2022-07-05-02-03-32 - PID10079 model validation loss:  0.7550 at step 1400. 
+Bestons-MacBook-Pro.local 2022-07-05-02-07-37 - PID10079 model validation loss:  0.7617 at step 1500. 
+Bestons-MacBook-Pro.local 2022-07-05-02-11-42 - PID10079 model validation loss:  0.8167 at step 1600. 
+Bestons-MacBook-Pro.local 2022-07-05-02-15-48 - PID10079 model validation loss:  0.8083 at step 1700. 
+Bestons-MacBook-Pro.local 2022-07-05-02-19-52 - PID10079 model validation loss:  0.7533 at step 1800. 
+Bestons-MacBook-Pro.local 2022-07-05-02-23-57 - PID10079 model validation loss:  0.8083 at step 1900. 
+Bestons-MacBook-Pro.local 2022-07-05-02-28-00 - PID10079 model validation loss:  0.8367 at step 2000. 
+Bestons-MacBook-Pro.local 2022-07-05-02-32-04 - PID10079 model validation loss:  0.7783 at step 2100. 
+Bestons-MacBook-Pro.local 2022-07-05-02-36-12 - PID10079 model validation loss:  0.7300 at step 2200. 
+Bestons-MacBook-Pro.local 2022-07-05-02-40-17 - PID10079 model validation loss:  0.7383 at step 2300. 
+Bestons-MacBook-Pro.local 2022-07-05-02-44-22 - PID10079 model validation loss:  0.7700 at step 2400. 
+Bestons-MacBook-Pro.local 2022-07-05-02-48-28 - PID10079 model validation loss:  0.7983 at step 2500. 
+Bestons-MacBook-Pro.local 2022-07-05-02-52-33 - PID10079 model validation loss:  0.7367 at step 2600. 
+Bestons-MacBook-Pro.local 2022-07-05-02-56-38 - PID10079 model validation loss:  0.7517 at step 2700. 
+Bestons-MacBook-Pro.local 2022-07-05-03-00-44 - PID10079 model validation loss:  0.7067 at step 2800. 
+Bestons-MacBook-Pro.local 2022-07-05-03-04-52 - PID10079 model validation loss:  0.7417 at step 2900. 
+Bestons-MacBook-Pro.local 2022-07-05-03-08-57 - PID10079 model validation loss:  0.7083 at step 3000. 
+Bestons-MacBook-Pro.local 2022-07-05-03-13-04 - PID10079 model validation loss:  0.8117 at step 3100. 
+Bestons-MacBook-Pro.local 2022-07-05-03-17-10 - PID10079 model validation loss:  0.7050 at step 3200. 
+Bestons-MacBook-Pro.local 2022-07-05-03-36-53 - PID10079 model validation loss:  0.7567 at step 3300. 
+Bestons-MacBook-Pro.local 2022-07-05-03-40-57 - PID10079 model validation loss:  0.7883 at step 3400. 
+Bestons-MacBook-Pro.local 2022-07-05-03-45-02 - PID10079 model validation loss:  0.7067 at step 3500. 
+Bestons-MacBook-Pro.local 2022-07-05-03-49-08 - PID10079 model validation loss:  0.7817 at step 3600. 
+Bestons-MacBook-Pro.local 2022-07-05-03-53-14 - PID10079 model validation loss:  0.7783 at step 3700. 
+Bestons-MacBook-Pro.local 2022-07-05-03-58-27 - PID10079 model validation loss:  0.8100 at step 3800. 
+Bestons-MacBook-Pro.local 2022-07-05-04-03-30 - PID10079 model validation loss:  0.8000 at step 3900. 
+Bestons-MacBook-Pro.local 2022-07-05-04-08-29 - PID10079 model validation loss:  0.7650 at step 4000. 
+Bestons-MacBook-Pro.local 2022-07-05-04-34-15 - PID10079 model validation loss:  0.6950 at step 4100. 
+Bestons-MacBook-Pro.local 2022-07-05-04-38-21 - PID10079 model validation loss:  0.8100 at step 4200. 
+Bestons-MacBook-Pro.local 2022-07-05-04-42-31 - PID10079 model validation loss:  0.8283 at step 4300. 
+Bestons-MacBook-Pro.local 2022-07-05-04-46-37 - PID10079 model validation loss:  0.7250 at step 4400. 
+Bestons-MacBook-Pro.local 2022-07-05-04-51-44 - PID10079 model validation loss:  0.8033 at step 4500. 
+Bestons-MacBook-Pro.local 2022-07-05-04-57-00 - PID10079 model validation loss:  0.8017 at step 4600. 
+Bestons-MacBook-Pro.local 2022-07-05-05-02-02 - PID10079 model validation loss:  0.7183 at step 4700. 
+Bestons-MacBook-Pro.local 2022-07-05-05-07-09 - PID10079 model validation loss:  0.7017 at step 4800. 
+Bestons-MacBook-Pro.local 2022-07-05-05-12-10 - PID10079 model validation loss:  0.8567 at step 4900. 
+Bestons-MacBook-Pro.local 2022-07-05-05-17-13 - PID10079 model validation loss:  0.7750 at step 5000. 
+Bestons-MacBook-Pro.local 2022-07-05-05-17-13 - PID10079 number steps exceeded or validation plateaued for too long, stopping training.
+Bestons-MacBook-Pro.local 2022-07-05-05-17-13 - PID10079 restoring best model to use for predictions.
+Bestons-MacBook-Pro.local 2022-07-05-10-01-33 - PID50500 model validation loss:  0.7867 at step 0. 
+Bestons-MacBook-Pro.local 2022-07-05-10-01-33 - PID50500 rejoice! found a better validation loss at step 0.
+Bestons-MacBook-Pro.local 2022-07-05-10-01-33 - PID50500 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-10-05-29 - PID51487 model validation loss:  0.7867 at step 0. 
+Bestons-MacBook-Pro.local 2022-07-05-10-05-29 - PID51487 rejoice! found a better validation loss at step 0.
+Bestons-MacBook-Pro.local 2022-07-05-10-05-29 - PID51487 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-10-06-24 - PID51588 model validation loss:  0.7867 at step 0. 
+Bestons-MacBook-Pro.local 2022-07-05-10-06-24 - PID51588 rejoice! found a better validation loss at step 0.
+Bestons-MacBook-Pro.local 2022-07-05-10-06-24 - PID51588 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-10-28-48 - PID53358 model validation loss:  0.7833 at step 0. 
+Bestons-MacBook-Pro.local 2022-07-05-10-28-48 - PID53358 rejoice! found a better validation loss at step 0.
+Bestons-MacBook-Pro.local 2022-07-05-10-28-48 - PID53358 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-10-41-47 - PID54667 model validation loss:  0.6667 at step 0. 
+Bestons-MacBook-Pro.local 2022-07-05-10-41-47 - PID54667 rejoice! found a better validation loss at step 0.
+Bestons-MacBook-Pro.local 2022-07-05-10-41-47 - PID54667 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-10-44-42 - PID54667 model validation loss:  0.7200 at step 100. 
+Bestons-MacBook-Pro.local 2022-07-05-10-47-58 - PID54667 model validation loss:  0.6600 at step 200. 
+Bestons-MacBook-Pro.local 2022-07-05-10-47-58 - PID54667 rejoice! found a better validation loss at step 200.
+Bestons-MacBook-Pro.local 2022-07-05-10-47-58 - PID54667 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-10-51-28 - PID54667 model validation loss:  0.6867 at step 300. 
+Bestons-MacBook-Pro.local 2022-07-05-10-52-28 - PID55887 model validation loss:  0.8383 at step 0. 
+Bestons-MacBook-Pro.local 2022-07-05-10-52-28 - PID55887 rejoice! found a better validation loss at step 0.
+Bestons-MacBook-Pro.local 2022-07-05-10-52-28 - PID55887 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-10-55-14 - PID55887 model validation loss:  0.8200 at step 100. 
+Bestons-MacBook-Pro.local 2022-07-05-10-55-14 - PID55887 rejoice! found a better validation loss at step 100.
+Bestons-MacBook-Pro.local 2022-07-05-10-55-14 - PID55887 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-10-58-19 - PID55887 model validation loss:  0.7733 at step 200. 
+Bestons-MacBook-Pro.local 2022-07-05-10-58-19 - PID55887 rejoice! found a better validation loss at step 200.
+Bestons-MacBook-Pro.local 2022-07-05-10-58-19 - PID55887 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-11-01-31 - PID55887 model validation loss:  0.7600 at step 300. 
+Bestons-MacBook-Pro.local 2022-07-05-11-01-31 - PID55887 rejoice! found a better validation loss at step 300.
+Bestons-MacBook-Pro.local 2022-07-05-11-01-31 - PID55887 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-11-04-49 - PID55887 model validation loss:  0.8517 at step 400. 
+Bestons-MacBook-Pro.local 2022-07-05-11-08-18 - PID55887 model validation loss:  0.8467 at step 500. 
+Bestons-MacBook-Pro.local 2022-07-05-11-09-35 - PID57671 model validation loss:  0.8233 at step 0. 
+Bestons-MacBook-Pro.local 2022-07-05-11-09-35 - PID57671 rejoice! found a better validation loss at step 0.
+Bestons-MacBook-Pro.local 2022-07-05-11-09-35 - PID57671 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-11-14-44 - PID57671 model validation loss:  0.8033 at step 100. 
+Bestons-MacBook-Pro.local 2022-07-05-11-14-44 - PID57671 rejoice! found a better validation loss at step 100.
+Bestons-MacBook-Pro.local 2022-07-05-11-14-44 - PID57671 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-11-20-15 - PID57671 model validation loss:  0.7950 at step 200. 
+Bestons-MacBook-Pro.local 2022-07-05-11-20-15 - PID57671 rejoice! found a better validation loss at step 200.
+Bestons-MacBook-Pro.local 2022-07-05-11-20-15 - PID57671 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-11-26-07 - PID57671 model validation loss:  0.7417 at step 300. 
+Bestons-MacBook-Pro.local 2022-07-05-11-26-07 - PID57671 rejoice! found a better validation loss at step 300.
+Bestons-MacBook-Pro.local 2022-07-05-11-26-07 - PID57671 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-11-32-06 - PID57671 model validation loss:  0.7550 at step 400. 
+Bestons-MacBook-Pro.local 2022-07-05-11-38-26 - PID57671 model validation loss:  0.7367 at step 500. 
+Bestons-MacBook-Pro.local 2022-07-05-11-38-26 - PID57671 rejoice! found a better validation loss at step 500.
+Bestons-MacBook-Pro.local 2022-07-05-11-38-26 - PID57671 saving model.
+Bestons-MacBook-Pro.local 2022-07-05-11-45-11 - PID57671 model validation loss:  0.8100 at step 600. 
+Bestons-MacBook-Pro.local 2022-07-05-11-52-17 - PID57671 model validation loss:  0.8333 at step 700. 
+Bestons-MacBook-Pro.local 2022-07-05-12-04-13 - PID57671 model validation loss:  0.8467 at step 800. 
+Bestons-MacBook-Pro.local 2022-07-05-13-15-56 - PID57671 model validation loss:  0.8267 at step 900. 
+Bestons-MacBook-Pro.local 2022-07-05-13-23-48 - PID57671 model validation loss:  0.8017 at step 1000. 
+Bestons-MacBook-Pro.local 2022-07-05-13-31-54 - PID57671 model validation loss:  0.8117 at step 1100. 
+Bestons-MacBook-Pro.local 2022-07-05-13-40-02 - PID57671 model validation loss:  0.7917 at step 1200. 
+Bestons-MacBook-Pro.local 2022-07-05-13-48-10 - PID57671 model validation loss:  0.7867 at step 1300. 
+Bestons-MacBook-Pro.local 2022-07-05-13-56-19 - PID57671 model validation loss:  0.8167 at step 1400. 
+Bestons-MacBook-Pro.local 2022-07-05-14-04-28 - PID57671 model validation loss:  0.8233 at step 1500. 
+Bestons-MacBook-Pro.local 2022-07-05-14-12-38 - PID57671 model validation loss:  0.8267 at step 1600. 
+eduroam-int-dhcp-97-171-233.ucl.ac.uk 2022-07-05-14-17-26 - PID70146 model validation loss:  0.8233 at step 0. 
+eduroam-int-dhcp-97-171-233.ucl.ac.uk 2022-07-05-14-17-26 - PID70146 rejoice! found a better validation loss at step 0.
+eduroam-int-dhcp-97-171-233.ucl.ac.uk 2022-07-05-14-17-26 - PID70146 saving model.

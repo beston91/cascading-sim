@@ -54,7 +54,7 @@ class Cascading(Simulation):
         self.capacity = self.gnn_graph.capacity.copy()
         self.load = self.gnn_graph.load.copy()
 
-        self.max_val = max(self.capacity_og.values()) + self.gnn_graph.total_capacity * 0.1
+        self.max_val = max(self.capacity.values()) + self.gnn_graph.total_capacity_og * 0.25
 
         self.protected = set()
         self.failed = set()

@@ -82,7 +82,7 @@ class RNetDQNAgent(PyTorchAgent):
                 _, q_t_plus_1, prefix_sum_prime = self.old_net(
                     cleaned_sp, None
                 )
-                _, q_rhs = greedy_actions(q_t_plus_1, prefix_sum_prime, None)
+                _, q_rhs = greedy_actions(q_t_plus_1, prefix_sum_prime)
                 list_target[nonterms] = q_rhs
 
             list_target = Variable(list_target.view(-1, 1))
@@ -123,7 +123,7 @@ class RNetDQNAgent(PyTorchAgent):
         )
         self.eps_step = max_steps / eps_step_denominator
         self.eps_end = 0.1
-        self.burn_in = 50
+        self.burn_in = 10
         self.net_copy_interval = 50
 
     def finalize(self):

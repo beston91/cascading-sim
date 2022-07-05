@@ -38,32 +38,11 @@ def jmax(arr, prefix_sum):
     return actions_tensor, values_tensor
 
 
-def greedy_actions(q_values, v_p, banned_list):
+def greedy_actions(q_values, v_p):
     actions = []
-    offset = 0
-    banned_acts = []
     prefix_sum = v_p.data.cpu().numpy()
-    for i in range(len(prefix_sum)):
-        n_nodes = prefix_sum[i] - offset
-
-        if banned_list is not None and banned_list[i] is not None:
-            for j in banned_list[i]:
-                banned_acts.append(offset + j)
-        offset = prefix_sum[i]
-
     q_values = q_values.data.clone()
     q_values.resize_(len(q_values))
-
-    banned = torch.LongTensor(banned_acts)
-    device_placement = get_device_placement()
-    if device_placement == "GPU":
-        banned = banned.cuda()
-
-    if len(banned_acts):
-        min_tensor = torch.tensor(float(np.finfo(np.float32).min))
-        if device_placement == "GPU":
-            min_tensor = min_tensor.cuda()
-        q_values.index_fill_(0, banned, min_tensor)
 
     q_vals_cpu = q_values.data.cpu().numpy()
     return jmax(q_vals_cpu, prefix_sum)
@@ -83,7 +62,7 @@ class QNet(nn.Module):
         self.num_edge_feats = 0
 
         if s2v_module is None:
-            self.gnn = GCN(in_channels=2, hidden_channels=32, out_channels=64)
+            self.gnn = GCN(in_channels=3, hidden_channels=32, out_channels=64)
         else:
             self.gnn = s2v_module
 
@@ -154,7 +133,7 @@ class QNet(nn.Module):
             picked_nodes = graph.picked_nodes
             node_degrees = graph.node_degrees
             for n in np.arange(len(nx_graph)):
-                nx_graph.nodes[n]["x"] = [np.float32(graph.capacity_og[n]), np.float32(graph.capacity[n])]
+                nx_graph.nodes[n]["x"] = [np.float32(graph.starting_capacity[n]*100), np.float32(graph.capacity[n]*100), np.float32(graph.load[n]*100)]
             pyg_graph = from_networkx(nx_graph)
             pyg_graphs.append(pyg_graph)
         batch = Batch.from_data_list(pyg_graphs)
@@ -175,7 +154,7 @@ class QNet(nn.Module):
         raw_pred = self.linear_out(embed_s_a)
 
         if greedy_acts:
-            actions, _ = greedy_actions(raw_pred, prefix_sum, None)
+            actions, _ = greedy_actions(raw_pred, prefix_sum)
 
         return actions, raw_pred, prefix_sum
 

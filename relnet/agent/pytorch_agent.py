@@ -14,7 +14,7 @@ from relnet.environment.graph_edge_env import GraphEdgeEnv
 
 
 class PyTorchAgent(Agent, ABC):
-    DEFAULT_BATCH_SIZE = 20
+    DEFAULT_BATCH_SIZE = 200
 
     def __init__(self, environment):
         super().__init__(environment)

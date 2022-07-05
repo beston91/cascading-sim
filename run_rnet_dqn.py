@@ -74,7 +74,6 @@ if __name__ == "__main__":
     validation_graphs = gen.generate_many(gen_params, validation_graph_seeds)
     test_graphs = gen.generate_many(gen_params, test_graph_seeds)
 
-    obj_fun_kwargs = {"random_seed": 42, "num_mc_sims": gen_params["n"] * 2}
     targ_env = GraphEdgeEnv(CAPACITY_BUDGET)
 
     agent = RNetDQNAgent(targ_env)

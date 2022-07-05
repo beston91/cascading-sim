@@ -124,7 +124,7 @@ class RNetDQNAgent(PyTorchAgent):
         self.eps_step = max_steps / eps_step_denominator
         self.eps_end = 0.1
         self.burn_in = 50
-        self.net_copy_interval = 1
+        self.net_copy_interval = 50
 
     def finalize(self):
         pass
@@ -237,6 +237,6 @@ class RNetDQNAgent(PyTorchAgent):
             "latent_dim": 64,
             "hidden": 32,
             "max_lv": 3,
-            "eps_step_denominator": 10,
+            "eps_step_denominator": 5,
         }
         return hyperparams

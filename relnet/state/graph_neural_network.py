@@ -11,6 +11,9 @@ class GCN(torch.nn.Module):
         self.conv1 = GCNConv(
             in_channels, hidden_channels, cached=False, normalize=True
         )
+        self.conv2 = GCNConv(
+            hidden_channels, hidden_channels, cached=False, normalize=True
+        )
         self.conv3 = GCNConv(
             hidden_channels, out_channels, cached=False, normalize=True
         )
@@ -19,10 +22,10 @@ class GCN(torch.nn.Module):
         )
 
     def forward(self, x, edge_index, edge_weight=None, batch=None):
-        x = F.dropout(x, p=0.5, training=self.training)
+        # x = F.dropout(x, p=0.5, training=self.training)
         x = self.conv1(x, edge_index, edge_weight).relu()
         x = F.dropout(x, p=0.5, training=self.training)
-        # x = self.conv2(x, edge_index, edge_weight).relu()
+        x = self.conv2(x, edge_index, edge_weight).relu()
         embed = self.conv3(x, edge_index, edge_weight)
         graph_embed = self.conv4(x, edge_index, edge_weight)
         graph_embed = global_add_pool(graph_embed, batch=batch)
